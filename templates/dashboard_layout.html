@@ -1,0 +1,75 @@
+{#
+dashboard_layout.html
+-----------------------
+This is the SECOND layer of template inheritance in this project:
+
+    base.html               <- absolute basics: <html>, Bootstrap CDN,
+                                 our style.css/main.js (Milestone 1)
+      -> dashboard_layout.html  <- adds sidebar + navbar + footer wrapper
+                                     (Milestone 4, THIS file)
+           -> dashboard.html    <- fills in just the actual page content
+                                     (stat cards, charts, etc.)
+
+WHY TWO LAYERS INSTEAD OF ONE?
+----------------------------------
+login.html does NOT want a sidebar/navbar (it's a full-screen centered
+card - see Milestone 3). But every future authenticated page (Add
+Trainee, View Trainees, Reports...) WILL want the exact same
+sidebar+navbar+footer wrapper this file provides. By putting that
+wrapper in its own middle layer, login.html can keep extending
+base.html directly (skipping this file entirely), while every dashboard
+page extends THIS file and automatically gets the full admin-panel
+shell for free - we only write the sidebar/navbar/footer markup once,
+ever.
+
+Any page that extends this file only needs to fill in
+`{% block page_content %}`.
+#}
+
+{% extends "base.html" %}
+
+{% block extra_head %}
+{#
+   Applying the saved dark-mode preference INLINE (not from dashboard.js)
+   is deliberate: dashboard.js is a separate file the browser fetches
+   over the network, which takes a few extra milliseconds. If we waited
+   for it, a dark-mode user would see a flash of the light theme first,
+   then watch it switch to dark. This tiny inline script runs
+   synchronously while the <head> is still being parsed, so the correct
+   theme is set before the page paints anything at all.
+#}
+<script>
+    (function () {
+        var savedTheme = localStorage.getItem("theme") || "light";
+        document.documentElement.setAttribute("data-theme", savedTheme);
+    })();
+</script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% block dashboard_extra_head %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+{# data-theme is set here (not just in CSS) so the very first paint
+   already reflects the saved preference - dashboard.js sets this
+   attribute from localStorage before anything below becomes visible,
+   preventing a "flash of the wrong theme" on page load. #}
+<div class="dashboard-shell">
+    {% include "partials/_sidebar.html" %}
+
+    <div class="dashboard-main">
+        {% include "partials/_navbar.html" %}
+
+        <main class="dashboard-content">
+            {% include "partials/_toasts.html" %}
+            {% block page_content %}{% endblock %}
+        </main>
+
+        {% include "partials/_footer.html" %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% block dashboard_extra_scripts %}{% endblock %}
+{% endblock %}

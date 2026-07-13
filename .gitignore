@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+.venv/
+
+# Flask / instance data
+instance/
+*.db
+database/*.db
+
+# Uploaded user files (keep folder structure, ignore actual content)
+uploads/certificates/*
+!uploads/certificates/.gitkeep
+uploads/photos/*
+!uploads/photos/.gitkeep
+
+# Environment variables / secrets
+.env
+
+# OS / editor junk
+.DS_Store
+.vscode/
+*.swp

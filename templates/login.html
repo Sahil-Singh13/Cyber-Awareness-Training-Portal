@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Cyber Awareness Training Portal{% endblock %}
+
+{% block content %}
+<div class="auth-page d-flex justify-content-center align-items-center">
+    <div class="auth-card card border-0 shadow-lg">
+        <div class="card-body p-4 p-md-5">
+
+            <div class="text-center mb-4">
+                <div class="auth-icon-circle mx-auto mb-3">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <h3 class="fw-bold mb-1">Admin Login</h3>
+                <p class="text-muted small mb-0">Cyber Awareness Training Portal</p>
+            </div>
+
+            {# ---------------------------------------------------------
+               FLASH MESSAGES
+               -----------------------------------------------------------
+               get_flashed_messages(with_categories=True) retrieves any
+               messages queued up by flash("...", "category") calls in
+               routes/auth.py (e.g. "Invalid username or password").
+               The category ("success", "danger", "info") maps directly
+               onto a matching Bootstrap alert color class below.
+            #}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'danger' else category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {# ---------------------------------------------------------
+               THE LOGIN FORM
+               -----------------------------------------------------------
+               form.hidden_tag() renders the CSRF token field
+               automatically - required by Flask-WTF for security.
+               Each field's own errors (e.g. "Username is required.")
+               are looped and shown right under that field.
+            #}
+            <form method="POST" action="{{ url_for('auth.login') }}" novalidate id="loginForm">
+                {{ form.hidden_tag() }}
+
+                <div class="mb-3">
+                    <label for="{{ form.username.id }}" class="form-label fw-semibold">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-person-fill"></i></span>
+                        {{ form.username(class="form-control" + (" is-invalid" if form.username.errors else ""), placeholder="Enter your username", autofocus=true) }}
+                    </div>
+                    {% for error in form.username.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.password.id }}" class="form-label fw-semibold">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-lock-fill"></i></span>
+                        {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else ""), placeholder="Enter your password", id="passwordInput") }}
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword" tabindex="-1">
+                            <i class="bi bi-eye-fill" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+                    {% for error in form.password.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4 form-check">
+                    {{ form.remember(class="form-check-input") }}
+                    <label class="form-check-label" for="{{ form.remember.id }}">Remember Me</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" id="loginSubmitBtn">
+                    <span id="loginBtnText">Login</span>
+                    <span id="loginBtnSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+                </button>
+            </form>
+
+            <p class="text-center text-muted small mt-4 mb-0">
+                Default admin credentials: <code>admin</code> / <code>admin123</code>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+{% endblock %}

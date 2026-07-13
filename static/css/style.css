@@ -1,0 +1,65 @@
+/*
+style.css
+---------
+This file will hold our custom "Blue + White" professional theme:
+rounded cards, soft shadows, sidebar styling, and responsive tweaks.
+
+For now (Milestone 1) it just proves that Flask's static file serving
+is correctly wired up. We will build the full design system here in
+Milestone 4 (Dashboard).
+*/
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* ------------------------------------------------------------------
+   MILESTONE 3: AUTH PAGES (Login + protected placeholder dashboard)
+   ------------------------------------------------------------------
+   These two pages share the same "centered card on a soft gradient
+   background" layout, so one .auth-page / .auth-card pair of classes
+   covers both. The full Blue+White design system (sidebar, dashboard
+   cards, tables) gets built out in Milestone 4 - this is intentionally
+   scoped small.
+*/
+.auth-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #eaf1fb 0%, #f7fafd 100%);
+    padding: 1.5rem;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    border-radius: 18px;
+}
+
+.auth-icon-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #0d6efd;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+}
+
+.auth-card .btn-primary {
+    border-radius: 10px;
+    background-color: #0d6efd;
+    border: none;
+}
+
+.auth-card .form-control,
+.auth-card .input-group-text {
+    border-radius: 10px;
+}
+
+/* Bootstrap already handles rounding the first/last element of an
+   input-group correctly (icon on the left, password-toggle button on
+   the right) - we only need to remove the double-border look between
+   adjacent elements, which Bootstrap's own .input-group CSS already
+   does. No custom radius override needed here. */
+

@@ -1,0 +1,12 @@
+{#
+partials/_footer.html
+----------------------
+A small, unobtrusive footer shown at the bottom of every dashboard-area
+page. Kept as its own partial for the same DRY reason as the sidebar
+and navbar.
+#}
+
+<footer class="dashboard-footer">
+    <span>&copy; {{ current_date[-4:] if current_date else "" }} Cyber Awareness Training Portal</span>
+    <span class="dashboard-footer-sub">WNS Cybersecurity Community Development Program</span>
+</footer>

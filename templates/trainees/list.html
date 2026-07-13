@@ -1,0 +1,213 @@
+{% extends "dashboard_layout.html" %}
+
+{% block title %}View Trainees - Cyber Awareness Training Portal{% endblock %}
+
+{% block dashboard_extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/trainees.css') }}">
+{% endblock %}
+
+{% block page_content %}
+
+<div class="page-heading d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-1">Trainee Records</h4>
+        <p class="text-muted mb-0">{{ pagination.total }} total record{{ "s" if pagination.total != 1 else "" }} on file.</p>
+    </div>
+    <a href="{{ url_for('trainees.add_trainee') }}" class="btn btn-primary">
+        <i class="bi bi-person-plus"></i> Add Trainee
+    </a>
+</div>
+
+{# ------------------------------------------------------------------
+   SEARCH BAR
+   ------------------------------------------------------------------
+   This is a real server-side search (submits GET ?q=... and the
+   database does the filtering - see routes/trainees.py) which stays
+   correct no matter how many thousands of trainees exist, unlike a
+   pure client-side filter that only works on the current page's 10
+   rows. trainees.js ALSO adds instant client-side filtering of the
+   current page's rows as you type, for extra responsiveness, before
+   you even hit Enter to search the full dataset.
+#}
+<div class="dashboard-card mb-3">
+    <form method="GET" class="row g-2 align-items-center" id="searchForm">
+        <div class="col-12 col-md-8">
+            <div class="input-group">
+                <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+                <input type="text" name="q" id="searchInput" class="form-control"
+                       placeholder="Search by name, mobile, reference ID, or location..."
+                       value="{{ search_query }}">
+            </div>
+        </div>
+        <div class="col-6 col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+        <div class="col-6 col-md-2">
+            <a href="{{ url_for('trainees.view_trainees') }}" class="btn btn-outline-secondary w-100">Clear</a>
+        </div>
+    </form>
+</div>
+
+<div class="dashboard-card">
+    {% if trainees %}
+    <div class="table-responsive">
+        <table class="table align-middle trainee-table mb-0" id="traineeTable">
+            <thead>
+                <tr>
+                    <th>Photo</th>
+                    <th><a href="{{ url_for('trainees.view_trainees', q=search_query, sort='name', order='asc' if sort_by != 'name' or order == 'desc' else 'desc') }}" class="sort-link">Name {% if sort_by == 'name' %}<i class="bi bi-arrow-{{ 'down' if order == 'desc' else 'up' }}"></i>{% endif %}</a></th>
+                    <th>Gender</th>
+                    <th><a href="{{ url_for('trainees.view_trainees', q=search_query, sort='age', order='asc' if sort_by != 'age' or order == 'desc' else 'desc') }}" class="sort-link">Age {% if sort_by == 'age' %}<i class="bi bi-arrow-{{ 'down' if order == 'desc' else 'up' }}"></i>{% endif %}</a></th>
+                    <th>Mobile</th>
+                    <th>Reference ID</th>
+                    <th><a href="{{ url_for('trainees.view_trainees', q=search_query, sort='training_date', order='asc' if sort_by != 'training_date' or order == 'desc' else 'desc') }}" class="sort-link">Training Date {% if sort_by == 'training_date' %}<i class="bi bi-arrow-{{ 'down' if order == 'desc' else 'up' }}"></i>{% endif %}</a></th>
+                    <th>Location</th>
+                    <th>Certificate</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for trainee in trainees %}
+                <tr>
+                    <td>
+                        {% if trainee.photo_filename %}
+                            <img src="{{ url_for('trainees.view_photo', filename=trainee.photo_filename) }}"
+                                 alt="{{ trainee.full_name }}" class="trainee-thumb">
+                        {% else %}
+                            <div class="trainee-thumb trainee-thumb-placeholder">
+                                <i class="bi bi-person"></i>
+                            </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('trainees.view_trainee_detail', trainee_id=trainee.id) }}" class="fw-semibold text-decoration-none">
+                            {{ trainee.full_name }}
+                        </a>
+                    </td>
+                    <td>{{ trainee.gender }}</td>
+                    <td>{{ trainee.age }}</td>
+                    <td>{{ trainee.mobile_number }}</td>
+                    <td><code>{{ trainee.reference_id }}</code></td>
+                    <td>{{ trainee.training_date.strftime("%d %b %Y") }}</td>
+                    <td>{{ trainee.training_location }}</td>
+                    <td>
+                        {% if trainee.certificate_filename %}
+                            <span class="badge status-badge status-badge-success"><i class="bi bi-check-circle-fill"></i> Uploaded</span>
+                        {% else %}
+                            <span class="badge status-badge status-badge-pending"><i class="bi bi-dash-circle"></i> Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex gap-1 justify-content-end flex-wrap">
+                            <a href="{{ url_for('trainees.view_trainee_detail', trainee_id=trainee.id) }}"
+                               class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ url_for('trainees.edit_trainee', trainee_id=trainee.id) }}"
+                               class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Edit">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% if trainee.certificate_filename %}
+                            <a href="{{ url_for('trainees.download_certificate', filename=trainee.certificate_filename) }}"
+                               class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Download Certificate">
+                                <i class="bi bi-download"></i>
+                            </a>
+                            {% endif %}
+                            <button type="button" class="btn btn-sm btn-outline-danger"
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                    data-trainee-id="{{ trainee.id }}" data-trainee-name="{{ trainee.full_name }}"
+                                    title="Delete">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {# --------------------------------------------------------------
+       PAGINATION
+       --------------------------------------------------------------
+       `pagination` is a Flask-SQLAlchemy Pagination object (see
+       routes/trainees.py -> query.paginate(...)). iter_pages() gives us
+       a clean list of page numbers (with None gaps for "..." on large
+       result sets) without us having to calculate any of that by hand.
+    #}
+    {% if pagination.pages > 1 %}
+    <nav class="mt-3">
+        <ul class="pagination justify-content-center mb-0">
+            <li class="page-item {{ 'disabled' if not pagination.has_prev }}">
+                <a class="page-link" href="{{ url_for('trainees.view_trainees', q=search_query, sort=sort_by, order=order, page=pagination.prev_num) }}">Previous</a>
+            </li>
+            {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                    <li class="page-item {{ 'active' if page_num == pagination.page }}">
+                        <a class="page-link" href="{{ url_for('trainees.view_trainees', q=search_query, sort=sort_by, order=order, page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {{ 'disabled' if not pagination.has_next }}">
+                <a class="page-link" href="{{ url_for('trainees.view_trainees', q=search_query, sort=sort_by, order=order, page=pagination.next_num) }}">Next</a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        {% if search_query %}
+            <p class="mb-0">No trainees match "<strong>{{ search_query }}</strong>".</p>
+            <p class="empty-state-sub">Try a different name, mobile number, reference ID, or location.</p>
+        {% else %}
+            <p class="mb-0">No trainee records available yet.</p>
+            <p class="empty-state-sub">Click "Add Trainee" above to register your first trainee.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{# ------------------------------------------------------------------
+   DELETE CONFIRMATION MODAL
+   ------------------------------------------------------------------
+   ONE modal, reused for every row. trainees.js reads the
+   data-trainee-id / data-trainee-name attributes off whichever delete
+   button was clicked and fills in the modal's text + form action
+   right before it opens - much lighter than rendering a separate
+   modal per row (which would mean 10+ nearly-identical modals in the
+   page's HTML on every list page).
+#}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-danger"></i> Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">
+                    Are you sure you want to delete <strong id="deleteModalTraineeName"></strong>'s record?
+                    This will permanently remove their database entry, certificate, and photo. This action cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteModalForm" method="POST" action="">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Yes, Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block dashboard_extra_scripts %}
+<script src="{{ url_for('static', filename='js/trainees.js') }}"></script>
+{% endblock %}

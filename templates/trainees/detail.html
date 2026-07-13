@@ -1,0 +1,148 @@
+{% extends "dashboard_layout.html" %}
+
+{% block title %}{{ trainee.full_name }} - Cyber Awareness Training Portal{% endblock %}
+
+{% block dashboard_extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/trainees.css') }}">
+{% endblock %}
+
+{% block page_content %}
+
+<div class="page-heading d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h4 class="fw-bold mb-0">Trainee Profile</h4>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('trainees.view_trainees') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back to List
+        </a>
+        <a href="{{ url_for('trainees.edit_trainee', trainee_id=trainee.id) }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-pencil"></i> Edit
+        </a>
+        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            <i class="bi bi-trash"></i> Delete
+        </button>
+    </div>
+</div>
+
+<div class="row g-3">
+    {# ---------------- Photo + quick facts card ---------------- #}
+    <div class="col-lg-4">
+        <div class="dashboard-card text-center h-100">
+            {% if trainee.photo_filename %}
+                <img src="{{ url_for('trainees.view_photo', filename=trainee.photo_filename) }}"
+                     alt="{{ trainee.full_name }}" class="trainee-detail-photo">
+            {% else %}
+                <div class="trainee-detail-photo trainee-thumb-placeholder mx-auto">
+                    <i class="bi bi-person"></i>
+                </div>
+            {% endif %}
+            <h5 class="fw-bold mt-3 mb-0">{{ trainee.full_name }}</h5>
+            <p class="text-muted mb-3">{{ trainee.gender }}, {{ trainee.age }} years</p>
+
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                {% if trainee.certificate_filename %}
+                    <span class="badge status-badge status-badge-success"><i class="bi bi-file-earmark-check"></i> Certificate Uploaded</span>
+                {% else %}
+                    <span class="badge status-badge status-badge-pending"><i class="bi bi-dash-circle"></i> No Certificate</span>
+                {% endif %}
+                {% if trainee.photo_filename %}
+                    <span class="badge status-badge status-badge-success"><i class="bi bi-camera"></i> Photo Uploaded</span>
+                {% else %}
+                    <span class="badge status-badge status-badge-pending"><i class="bi bi-dash-circle"></i> No Photo</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# ---------------- Full details card ---------------- #}
+    <div class="col-lg-8">
+        <div class="dashboard-card h-100">
+            <h6 class="dashboard-card-title"><i class="bi bi-card-list text-primary"></i> Training Details</h6>
+
+            <dl class="detail-grid">
+                <div>
+                    <dt>Mobile Number</dt>
+                    <dd>{{ trainee.mobile_number }}</dd>
+                </div>
+                <div>
+                    <dt>Aadhaar Number</dt>
+                    <dd>{{ trainee.aadhaar_number }}</dd>
+                </div>
+                <div>
+                    <dt>Reference ID</dt>
+                    <dd><code>{{ trainee.reference_id }}</code></dd>
+                </div>
+                <div>
+                    <dt>Training Date</dt>
+                    <dd>{{ trainee.training_date.strftime("%d %B %Y") }}</dd>
+                </div>
+                <div>
+                    <dt>Training Location</dt>
+                    <dd>{{ trainee.training_location }}</dd>
+                </div>
+                <div>
+                    <dt>Created On</dt>
+                    <dd>{{ trainee.created_at.strftime("%d %B %Y, %I:%M %p") }}</dd>
+                </div>
+                <div class="detail-grid-full">
+                    <dt>Remarks</dt>
+                    <dd>{{ trainee.remarks if trainee.remarks else "—" }}</dd>
+                </div>
+            </dl>
+
+            {#
+               NOTE: this project currently only tracks `created_at`, not
+               an `updated_at` timestamp - adding one would mean altering
+               the Trainee table schema from Milestone 2, which the
+               project rules for this milestone say to avoid unless
+               necessary. So "Last Updated" isn't shown here yet - if you
+               want it, it's a quick, explicit follow-up (add the column
+               + backfill), just say the word.
+            #}
+
+            <hr>
+            <div class="d-flex flex-wrap gap-2">
+                {% if trainee.certificate_filename %}
+                <a href="{{ url_for('trainees.download_certificate', filename=trainee.certificate_filename) }}" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-download"></i> Download Certificate
+                </a>
+                {% endif %}
+                {% if trainee.photo_filename %}
+                <a href="{{ url_for('trainees.view_photo', filename=trainee.photo_filename) }}" target="_blank" class="btn btn-outline-info btn-sm">
+                    <i class="bi bi-eye"></i> View Full Photo
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Reused delete modal (same pattern as list.html) - only ONE trainee
+   on this page, so we can wire the form action directly without JS. #}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-danger"></i> Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">
+                    Are you sure you want to delete <strong>{{ trainee.full_name }}</strong>'s record?
+                    This will permanently remove their database entry, certificate, and photo. This action cannot be undone.
+                </p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('trainees.delete_trainee', trainee_id=trainee.id) }}">
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Yes, Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block dashboard_extra_scripts %}
+<script src="{{ url_for('static', filename='js/trainees.js') }}"></script>
+{% endblock %}

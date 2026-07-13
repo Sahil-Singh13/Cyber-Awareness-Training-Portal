@@ -1,0 +1,101 @@
+{#
+partials/_sidebar.html
+----------------------
+The left navigation sidebar, shared by every dashboard-area page.
+
+WHY A SEPARATE PARTIAL FILE?
+-------------------------------
+Every future page (Add Trainee, View Trainees, Reports...) will reuse
+this exact same sidebar. If we copy-pasted this markup into every page
+template, changing one menu item would mean editing it in ten places.
+By keeping it in one file and {% include %}-ing it, we edit it ONCE and
+every page picks up the change automatically - the DRY principle
+("Don't Repeat Yourself").
+
+HOW "ACTIVE PAGE" HIGHLIGHTING WORKS
+----------------------------------------
+Each route that renders a page using this sidebar passes an
+`active_page` variable (e.g. active_page="dashboard" from
+routes/dashboard.py). Below, each link compares its own name against
+that variable with a simple Jinja `if` - if they match, we add Bootstrap's
+"active" class, which our CSS styles with the blue highlight.
+#}
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <i class="bi bi-shield-check"></i>
+        <span class="sidebar-brand-text">Cyber Training Portal</span>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="{{ url_for('dashboard.dashboard_home') }}"
+           class="sidebar-link {{ 'active' if active_page == 'dashboard' else '' }}">
+            <i class="bi bi-speedometer2"></i>
+            <span>Dashboard</span>
+        </a>
+
+        {# ------------------------------------------------------------
+           MILESTONE 5: these two links are now REAL routes. The
+           "active" highlighting logic is identical to the Dashboard
+           link above - each route passes its own active_page value
+           (see routes/trainees.py).
+        #}
+        <a href="{{ url_for('trainees.add_trainee') }}"
+           class="sidebar-link {{ 'active' if active_page == 'add_trainee' else '' }}">
+            <i class="bi bi-person-plus"></i>
+            <span>Add Trainee</span>
+        </a>
+
+        <a href="{{ url_for('trainees.view_trainees') }}"
+           class="sidebar-link {{ 'active' if active_page == 'view_trainees' else '' }}">
+            <i class="bi bi-people"></i>
+            <span>View Trainees</span>
+        </a>
+
+        {# ------------------------------------------------------------
+           DISABLED LINKS (features not built yet)
+           ------------------------------------------------------------
+           These use <span> instead of <a href="..."> on purpose - there
+           is no real route to link to yet, and a real href that leads
+           to a 404 would feel broken to a user. tabindex="0" lets the
+           tooltip still be reachable/visible via keyboard navigation
+           for accessibility, even though the item can't be clicked.
+        #}
+        <span class="sidebar-link disabled" tabindex="0"
+              data-bs-toggle="tooltip" data-bs-placement="right"
+              title="Available in upcoming milestone">
+            <i class="bi bi-file-earmark-text"></i>
+            <span>Certificates</span>
+        </span>
+
+        <span class="sidebar-link disabled" tabindex="0"
+              data-bs-toggle="tooltip" data-bs-placement="right"
+              title="Available in upcoming milestone">
+            <i class="bi bi-images"></i>
+            <span>Photos</span>
+        </span>
+
+        <span class="sidebar-link disabled" tabindex="0"
+              data-bs-toggle="tooltip" data-bs-placement="right"
+              title="Available in upcoming milestone">
+            <i class="bi bi-bar-chart-line"></i>
+            <span>Reports</span>
+        </span>
+
+        <span class="sidebar-link disabled" tabindex="0"
+              data-bs-toggle="tooltip" data-bs-placement="right"
+              title="Available in upcoming milestone">
+            <i class="bi bi-gear"></i>
+            <span>Settings</span>
+        </span>
+
+        <hr class="sidebar-divider">
+
+        <a href="{{ url_for('auth.logout') }}" class="sidebar-link text-danger">
+            <i class="bi bi-box-arrow-right"></i>
+            <span>Logout</span>
+        </a>
+    </nav>
+</aside>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
