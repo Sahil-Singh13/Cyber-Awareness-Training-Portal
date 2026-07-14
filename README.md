@@ -141,3 +141,28 @@ Full details in [`.env.example`](.env.example) and
 Built as a learning project for the WNS Cybersecurity Community
 Development Program. Not intended for redistribution as a general
 commercial product without adaptation.
+## 📸 Application Screenshots
+
+### Login
+![Login](screenshots/01-login.png)
+
+### Dashboard
+![Dashboard](screenshots/02-dashboard.png)
+
+### Dashboard Analytics
+![Dashboard Analytics](screenshots/03-dashboard-analytics.png)
+
+### Add Trainee
+![Add Trainee](screenshots/04-add-trainee.png)
+
+### Trainee List
+![Trainee List](screenshots/05-trainees-list.png)
+
+### Training Gallery
+![Training Gallery](screenshots/06-training-gallery.png)
+
+### Reports
+![Reports](screenshots/07-reports.png)
+
+### Settings
+![Settings](screenshots/08-settings.png)
