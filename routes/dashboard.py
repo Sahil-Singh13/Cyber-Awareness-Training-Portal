@@ -1,14 +1,18 @@
 """
 routes/dashboard.py
 --------------------
-MILESTONE 4 UPDATE: this file now builds the REAL admin dashboard. All
-numbers you see on the dashboard (total trained, certificates uploaded,
-male/female counts, daily training counts, recent activity) are
-computed live from the `trainee` table using SQLAlchemy queries - none
-of it is hardcoded. Since CRUD (Milestone 5) doesn't exist yet, the
-`trainee` table is currently empty on a fresh install, so every query
-below is written to degrade gracefully to zero / empty results instead
-of crashing.
+MILESTONE 4: this file builds the REAL admin dashboard. All numbers you
+see on the dashboard (total trained, certificates uploaded, male/female
+counts, daily training counts, recent activity) are computed live from
+the `trainee` table using SQLAlchemy queries - none of it is
+hardcoded. Every query is written to degrade gracefully to zero / empty
+results instead of crashing on an empty database.
+
+MILESTONE 6 UPDATE (Section 4 - Analytics): added monthly training
+counts and location-wise training counts, and switched from the fixed
+Config.TRAINING_GOAL to get_effective_training_goal() (see
+routes/settings.py) so the dashboard immediately reflects a goal the
+admin has changed via Settings - no restart needed.
 
 Authentication is completely untouched - @login_required still guards
 this route exactly as it did in Milestone 3.
@@ -19,9 +23,9 @@ from flask import Blueprint, render_template
 from flask_login import login_required, current_user
 from sqlalchemy import func
 
-from config import Config
 from models import db
 from models.trainee import Trainee
+from routes.settings import get_effective_training_goal
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -59,7 +63,10 @@ def dashboard_home():
         Trainee.photo_filename.isnot(None)
     ).count()
 
-    training_goal = Config.TRAINING_GOAL
+    # MILESTONE 6: reads the admin-configurable goal from Settings
+    # (falls back to Config.TRAINING_GOAL if never changed) instead of
+    # always using the fixed Config value.
+    training_goal = get_effective_training_goal()
     pending_to_reach_goal = max(training_goal - total_trained, 0)
 
     # We cap the PROGRESS BAR at 100% (you can't visually fill a bar
@@ -117,6 +124,37 @@ def dashboard_home():
     daily_labels = [d.strftime("%d %b") for d, _ in daily_rows]
     daily_counts_list = [count for _, count in daily_rows]
 
+    # MILESTONE 6, Section 4: "Training per Month". strftime('%Y-%m',
+    # training_date) groups every trainee into their training month
+    # ("2026-07") directly inside the SQL query itself (func.strftime
+    # is SQLite's own date-formatting function, exposed to SQLAlchemy)
+    # - much faster than pulling every row into Python and grouping
+    # there by hand.
+    monthly_rows = (
+        db.session.query(
+            func.strftime("%Y-%m", Trainee.training_date).label("month"),
+            func.count(Trainee.id)
+        )
+        .group_by("month")
+        .order_by("month")
+        .all()
+    )
+    monthly_labels = [m for m, _ in monthly_rows]
+    monthly_counts_list = [c for _, c in monthly_rows]
+
+    # MILESTONE 6, Section 4: "Location-wise Training" - how many
+    # trainees were trained at each distinct location, busiest first
+    # (useful for spotting which venue/location is used most).
+    location_rows = (
+        db.session.query(Trainee.training_location, func.count(Trainee.id))
+        .group_by(Trainee.training_location)
+        .order_by(func.count(Trainee.id).desc())
+        .limit(8)
+        .all()
+    )
+    location_labels = [loc for loc, _ in location_rows]
+    location_counts_list = [c for _, c in location_rows]
+
     # "People Trained Progress" chart re-uses total_trained/training_goal
     # (completed vs remaining) as a simple 2-slice donut.
     completed_vs_pending = {
@@ -138,5 +176,10 @@ def dashboard_home():
         gender_counts=gender_counts,
         daily_labels=daily_labels,
         daily_counts_list=daily_counts_list,
+        monthly_labels=monthly_labels,
+        monthly_counts_list=monthly_counts_list,
+        location_labels=location_labels,
+        location_counts_list=location_counts_list,
         completed_vs_pending=completed_vs_pending,
     )
+

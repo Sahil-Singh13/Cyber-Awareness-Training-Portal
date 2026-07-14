@@ -1,0 +1,81 @@
+{% extends "dashboard_layout.html" %}
+
+{% block title %}Import Results - Cyber Awareness Training Portal{% endblock %}
+
+{% block dashboard_extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/reports_settings.css') }}">
+{% endblock %}
+
+{% block page_content %}
+
+<div class="page-heading d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h4 class="fw-bold mb-0">Import Summary</h4>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('reports.reports_home') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back to Reports
+        </a>
+        <a href="{{ url_for('trainees.view_trainees') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-people"></i> View Trainees
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 stat-cards-row">
+    <div class="col-4">
+        <div class="stat-card text-center">
+            <div class="stat-card-number">{{ total }}</div>
+            <div class="stat-card-title">Rows Processed</div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="stat-card text-center">
+            <div class="stat-card-number text-success">{{ imported }}</div>
+            <div class="stat-card-title">Imported</div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="stat-card text-center">
+            <div class="stat-card-number text-danger">{{ skipped }}</div>
+            <div class="stat-card-title">Skipped</div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-card mt-3">
+    <h6 class="dashboard-card-title"><i class="bi bi-list-check text-primary"></i> Row-by-Row Details</h6>
+    {% if results %}
+    <div class="table-responsive">
+        <table class="table align-middle recent-activity-table mb-0">
+            <thead>
+                <tr>
+                    <th>Row</th>
+                    <th>Status</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                <tr>
+                    <td>{{ r.row_number }}</td>
+                    <td>
+                        {% if r.status == "ok" %}
+                            <span class="badge status-badge status-badge-success"><i class="bi bi-check-circle-fill"></i> Imported</span>
+                        {% else %}
+                            <span class="badge status-badge status-badge-error"><i class="bi bi-x-circle-fill"></i> Skipped</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ r.message }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-inbox"></i>
+        <p class="mb-0">The file didn't contain any rows to process.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

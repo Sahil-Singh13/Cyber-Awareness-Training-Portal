@@ -1,0 +1,154 @@
+{% extends "dashboard_layout.html" %}
+
+{% block title %}Settings - Cyber Awareness Training Portal{% endblock %}
+
+{% block dashboard_extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/reports_settings.css') }}">
+{% endblock %}
+
+{% block page_content %}
+
+<div class="page-heading">
+    <h4 class="fw-bold mb-1">Settings</h4>
+    <p class="text-muted mb-0">Manage your account, training goal, and database.</p>
+</div>
+
+<div class="row g-3">
+    {# ---------------- Change Password ---------------- #}
+    <div class="col-lg-6">
+        <div class="dashboard-card h-100">
+            <h6 class="dashboard-card-title"><i class="bi bi-key-fill text-primary"></i> Change Password</h6>
+            <form method="POST" action="{{ url_for('settings.change_password') }}" novalidate>
+                {{ password_form.hidden_tag() }}
+                <div class="mb-3">
+                    <label class="form-label">{{ password_form.current_password.label.text }}</label>
+                    {{ password_form.current_password(class="form-control" + (" is-invalid" if password_form.current_password.errors else "")) }}
+                    {% for error in password_form.current_password.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">{{ password_form.new_password.label.text }}</label>
+                    {{ password_form.new_password(class="form-control" + (" is-invalid" if password_form.new_password.errors else "")) }}
+                    {% for error in password_form.new_password.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">{{ password_form.confirm_password.label.text }}</label>
+                    {{ password_form.confirm_password(class="form-control" + (" is-invalid" if password_form.confirm_password.errors else "")) }}
+                    {% for error in password_form.confirm_password.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check2-circle"></i> Change Password
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {# ---------------- Update Training Goal ---------------- #}
+    <div class="col-lg-6">
+        <div class="dashboard-card h-100">
+            <h6 class="dashboard-card-title"><i class="bi bi-flag-fill text-primary"></i> Update Training Goal</h6>
+            <p class="text-muted small">This controls the dashboard's progress bar target. Current goal: <strong>{{ goal_form.training_goal.data }}</strong>.</p>
+            <form method="POST" action="{{ url_for('settings.update_goal') }}" novalidate class="row g-2 align-items-end">
+                <div class="col-8">
+                    <label class="form-label">{{ goal_form.training_goal.label.text }}</label>
+                    {{ goal_form.training_goal(class="form-control" + (" is-invalid" if goal_form.training_goal.errors else ""), min="1") }}
+                    {% for error in goal_form.training_goal.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                </div>
+                <div class="col-4">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check2-circle"></i> Update
+                    </button>
+                </div>
+            </form>
+
+            <hr>
+            <h6 class="dashboard-card-title mt-2"><i class="bi bi-info-circle-fill text-primary"></i> System Information</h6>
+            <dl class="detail-grid">
+                <div><dt>Application Version</dt><dd>{{ system_info.app_version }}</dd></div>
+                <div><dt>Current Admin</dt><dd>{{ system_info.current_admin }}</dd></div>
+                <div><dt>Total Trainees</dt><dd>{{ system_info.total_trainees }}</dd></div>
+                <div><dt>Total Admin Accounts</dt><dd>{{ system_info.total_admins }}</dd></div>
+                <div><dt>Database Size</dt><dd>{{ system_info.database_size_kb }} KB</dd></div>
+            </dl>
+        </div>
+    </div>
+</div>
+
+{# ---------------- Database Backup / Restore / Export ---------------- #}
+<div class="row g-3 mt-1">
+    <div class="col-12">
+        <div class="dashboard-card">
+            <h6 class="dashboard-card-title"><i class="bi bi-database-fill text-primary"></i> Database Backup &amp; Restore</h6>
+            <p class="text-muted small">
+                <strong>Backup</strong> saves a timestamped copy on the server AND downloads it to you.
+                <strong>Export</strong> just downloads the current database file directly.
+                <strong>Restore</strong> replaces the live database with a previously downloaded .db file - a safety copy of the current data is made automatically first.
+            </p>
+
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <a href="{{ url_for('settings.backup_database') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-cloud-arrow-down"></i> Backup Database
+                </a>
+                <a href="{{ url_for('settings.export_database') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-download"></i> Export Database
+                </a>
+            </div>
+
+            <form method="POST" action="{{ url_for('settings.restore_database') }}" enctype="multipart/form-data" novalidate
+                  onsubmit="return confirm('This will REPLACE your current database with the uploaded file. A safety backup will be made first. Continue?');">
+                {{ restore_form.hidden_tag() }}
+                <label class="form-label fw-semibold">{{ restore_form.database_file.label.text }}</label>
+                <div class="row g-2 align-items-start">
+                    <div class="col-md-8">
+                        {{ restore_form.database_file(class="form-control" + (" is-invalid" if restore_form.database_file.errors else ""), accept=".db") }}
+                        {% for error in restore_form.database_file.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-outline-danger w-100">
+                            <i class="bi bi-arrow-counterclockwise"></i> Restore Database
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{# ---------------- Recent Activity Log ---------------- #}
+<div class="row g-3 mt-1 mb-3">
+    <div class="col-12">
+        <div class="dashboard-card">
+            <h6 class="dashboard-card-title"><i class="bi bi-clock-history text-primary"></i> Recent Activity Log</h6>
+            {% if recent_activity %}
+            <ul class="activity-log-list">
+                {% for entry in recent_activity %}
+                <li class="activity-log-item">
+                    <span class="activity-log-icon activity-icon-{{ entry.action }}">
+                        {% if entry.action == "login" %}<i class="bi bi-box-arrow-in-right"></i>
+                        {% elif entry.action == "logout" %}<i class="bi bi-box-arrow-right"></i>
+                        {% elif entry.action == "trainee_added" %}<i class="bi bi-person-plus"></i>
+                        {% elif entry.action == "trainee_updated" %}<i class="bi bi-pencil"></i>
+                        {% elif entry.action == "trainee_deleted" %}<i class="bi bi-trash"></i>
+                        {% elif entry.action == "export_generated" %}<i class="bi bi-file-earmark-arrow-down"></i>
+                        {% elif entry.action == "trainees_imported" %}<i class="bi bi-file-earmark-arrow-up"></i>
+                        {% else %}<i class="bi bi-gear"></i>{% endif %}
+                    </span>
+                    <span class="activity-log-text">{{ entry.description }}</span>
+                    <span class="activity-log-time">{{ entry.created_at.strftime("%d %b, %I:%M %p") }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <p class="mb-0">No activity recorded yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block dashboard_extra_scripts %}
+<script src="{{ url_for('static', filename='js/reports_settings.js') }}"></script>
+{% endblock %}

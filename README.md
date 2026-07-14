@@ -8,7 +8,7 @@ replacing manual Excel sheets and folders.
 Built as part of the **WNS Cybersecurity Community Development Program**
 college assignment.
 
-> 🚧 **Status: Under active development (Milestone 1 of 10 complete)**
+> 🚧 **Status: Under active development (Milestone 6 of 10 complete)**
 > This README will be filled in fully as each milestone is completed.
 
 ---
@@ -43,7 +43,11 @@ cyber_training_portal/
 │
 ├── templates/                # Jinja2 HTML templates
 │   ├── base.html               # Shared layout (navbar/sidebar wrap here)
-│   └── setup_check.html        # Milestone 1 placeholder page
+│   ├── dashboard_layout.html    # Sidebar + navbar + footer shell (Milestone 4)
+│   ├── partials/                # Reusable sidebar/navbar/footer/toasts
+│   ├── trainees/                # Add/Edit/List/Detail (Milestone 5)
+│   ├── reports/                 # Export + Import UI (Milestone 6)
+│   └── settings/                # Settings page (Milestone 6)
 │
 ├── static/
 │   ├── css/style.css           # Custom Blue+White theme
@@ -89,23 +93,26 @@ python app.py
 http://127.0.0.1:5000
 ```
 
-You should see a **"Project Skeleton is Working!"** confirmation page.
-That means Milestone 1 is correctly set up on your machine.
+You'll be redirected to the login page. Log in with the default admin
+account:
+
+- **Username:** `admin`
+- **Password:** `admin123`
+
+(Change this immediately from Settings after your first login.)
 
 ---
 
 ## Milestones Roadmap
 
 - [x] **Milestone 1** — Project Structure
-- [ ] **Milestone 2** — Database Design
-- [ ] **Milestone 3** — Authentication (Login/Logout, Admin)
-- [ ] **Milestone 4** — Dashboard (stats, charts, sidebar UI)
-- [ ] **Milestone 5** — CRUD (Add/View/Edit/Delete Trainees)
-- [ ] **Milestone 6** — File Uploads (Certificates & Photos)
-- [ ] **Milestone 7** — Reports (PDF / Excel / CSV export)
-- [ ] **Milestone 8** — Analytics (Chart.js dashboards)
-- [ ] **Milestone 9** — Testing
-- [ ] **Milestone 10** — Deployment
+- [x] **Milestone 2** — Database Design
+- [x] **Milestone 3** — Authentication (Login/Logout, Admin)
+- [x] **Milestone 4** — Dashboard (stats, charts, sidebar UI)
+- [x] **Milestone 5** — Trainee Management (Add/View/Edit/Delete/Search, file uploads)
+- [x] **Milestone 6** — Reports (PDF/Excel/CSV), Excel Import, DB Backup/Restore, Settings, Activity Log, extra Analytics
+- [ ] **Milestone 7** — Testing
+- [ ] **Milestone 8** — Deployment
 
 ---
 

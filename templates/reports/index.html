@@ -1,0 +1,105 @@
+{% extends "dashboard_layout.html" %}
+
+{% block title %}Reports - Cyber Awareness Training Portal{% endblock %}
+
+{% block dashboard_extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/reports_settings.css') }}">
+{% endblock %}
+
+{% block page_content %}
+
+<div class="page-heading">
+    <h4 class="fw-bold mb-1">Reports &amp; Data Import</h4>
+    <p class="text-muted mb-0">{{ total_trainees }} trainee record{{ "s" if total_trainees != 1 else "" }} available to export.</p>
+</div>
+
+{# ------------------------------------------------------------------
+   EXPORT CARDS
+   ------------------------------------------------------------------
+   Each of these is a plain GET link, not a form - exporting doesn't
+   change any data, so there's no need for a POST request or CSRF
+   token here. Clicking simply downloads the file routes/reports.py
+   streams back.
+#}
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="dashboard-card text-center h-100 export-card">
+            <div class="stat-card-icon bg-primary-soft text-primary mx-auto">
+                <i class="bi bi-file-earmark-pdf-fill"></i>
+            </div>
+            <h6 class="fw-bold mt-3">PDF Report</h6>
+            <p class="text-muted small">A print-friendly table of every trainee record.</p>
+            <a href="{{ url_for('reports.export_pdf') }}" class="btn btn-primary w-100">
+                <i class="bi bi-download"></i> Download PDF
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="dashboard-card text-center h-100 export-card">
+            <div class="stat-card-icon bg-success-soft text-success mx-auto">
+                <i class="bi bi-file-earmark-excel-fill"></i>
+            </div>
+            <h6 class="fw-bold mt-3">Excel Report</h6>
+            <p class="text-muted small">A spreadsheet you can filter, sort, and analyze further.</p>
+            <a href="{{ url_for('reports.export_excel') }}" class="btn btn-success w-100">
+                <i class="bi bi-download"></i> Download Excel
+            </a>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="dashboard-card text-center h-100 export-card">
+            <div class="stat-card-icon bg-info-soft text-info mx-auto">
+                <i class="bi bi-filetype-csv"></i>
+            </div>
+            <h6 class="fw-bold mt-3">CSV Report</h6>
+            <p class="text-muted small">A lightweight, universal format for any spreadsheet tool.</p>
+            <a href="{{ url_for('reports.export_csv') }}" class="btn btn-info w-100 text-white">
+                <i class="bi bi-download"></i> Download CSV
+            </a>
+        </div>
+    </div>
+</div>
+
+{# ------------------------------------------------------------------
+   IMPORT FROM EXCEL
+   ------------------------------------------------------------------
+#}
+<div class="row g-3 mt-1">
+    <div class="col-12">
+        <div class="dashboard-card">
+            <h6 class="dashboard-card-title"><i class="bi bi-file-earmark-arrow-up text-primary"></i> Import Trainees from Excel</h6>
+            <p class="text-muted small">
+                Upload an .xlsx file with columns: Name, Gender, Age, Mobile, Aadhaar, Reference ID, Training Date, Location, Remarks.
+                Every row is validated - invalid rows are skipped and listed in a summary, valid rows are added automatically.
+            </p>
+            <a href="{{ url_for('reports.sample_template') }}" class="btn btn-outline-secondary btn-sm mb-3">
+                <i class="bi bi-download"></i> Download Sample Template
+            </a>
+
+            <form method="POST" action="{{ url_for('reports.import_trainees') }}" enctype="multipart/form-data" novalidate id="importForm">
+                {{ import_form.hidden_tag() }}
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-8">
+                        <label class="form-label fw-semibold">{{ import_form.excel_file.label.text }}</label>
+                        {{ import_form.excel_file(class="form-control" + (" is-invalid" if import_form.excel_file.errors else ""), accept=".xlsx,.xls") }}
+                        {% for error in import_form.excel_file.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100" id="importSubmitBtn">
+                            <span id="importSubmitText"><i class="bi bi-upload"></i> Import Trainees</span>
+                            <span id="importSubmitSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block dashboard_extra_scripts %}
+<script src="{{ url_for('static', filename='js/reports_settings.js') }}"></script>
+{% endblock %}

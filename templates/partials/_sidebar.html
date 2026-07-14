@@ -63,31 +63,32 @@ that variable with a simple Jinja `if` - if they match, we add Bootstrap's
         #}
         <span class="sidebar-link disabled" tabindex="0"
               data-bs-toggle="tooltip" data-bs-placement="right"
-              title="Available in upcoming milestone">
+              title="Managed from each trainee's profile for now">
             <i class="bi bi-file-earmark-text"></i>
             <span>Certificates</span>
         </span>
 
         <span class="sidebar-link disabled" tabindex="0"
               data-bs-toggle="tooltip" data-bs-placement="right"
-              title="Available in upcoming milestone">
+              title="Managed from each trainee's profile for now">
             <i class="bi bi-images"></i>
             <span>Photos</span>
         </span>
 
-        <span class="sidebar-link disabled" tabindex="0"
-              data-bs-toggle="tooltip" data-bs-placement="right"
-              title="Available in upcoming milestone">
+        {# ------------------------------------------------------------
+           MILESTONE 6: Reports and Settings are now real routes too.
+        #}
+        <a href="{{ url_for('reports.reports_home') }}"
+           class="sidebar-link {{ 'active' if active_page == 'reports' else '' }}">
             <i class="bi bi-bar-chart-line"></i>
             <span>Reports</span>
-        </span>
+        </a>
 
-        <span class="sidebar-link disabled" tabindex="0"
-              data-bs-toggle="tooltip" data-bs-placement="right"
-              title="Available in upcoming milestone">
+        <a href="{{ url_for('settings.settings_home') }}"
+           class="sidebar-link {{ 'active' if active_page == 'settings' else '' }}">
             <i class="bi bi-gear"></i>
             <span>Settings</span>
-        </span>
+        </a>
 
         <hr class="sidebar-divider">
 

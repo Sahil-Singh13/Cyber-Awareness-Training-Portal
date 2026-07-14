@@ -34,6 +34,7 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired
 
 from models.user import User
+from models.activity_log import ActivityLog
 
 # The first argument "auth" becomes this blueprint's NAME, used when we
 # build URLs with url_for("auth.login"), url_for("auth.logout"), etc.
@@ -130,6 +131,7 @@ def login():
             # was ticked, Flask-Login sets a longer-lived cookie so the
             # admin stays logged in even after closing the browser.
             login_user(user, remember=form.remember.data)
+            ActivityLog.log("login", f"Admin '{user.username}' logged in.")
             flash(f"Welcome back, {user.username}!", "success")
 
             # "next" support: if the admin was redirected here because
@@ -161,6 +163,11 @@ def logout():
     cookie in the browser becomes meaningless because the server no
     longer recognizes any identity tied to it.
     """
+    # Log BEFORE logout_user() - current_user.username is only
+    # available while the session is still authenticated. Calling
+    # logout_user() first would make current_user anonymous, and we'd
+    # have no username left to log.
+    ActivityLog.log("logout", f"Admin '{current_user.username}' logged out.")
     logout_user()
     flash("You have been logged out successfully.", "info")
     return redirect(url_for("auth.login"))

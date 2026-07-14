@@ -114,16 +114,12 @@
                 <a href="{{ url_for('trainees.add_trainee') }}" class="btn btn-primary flex-fill">
                     <i class="bi bi-person-plus"></i> Add Trainee
                 </a>
-                <span class="d-inline-block flex-fill" data-bs-toggle="tooltip" title="Available in upcoming milestone">
-                    <button class="btn btn-outline-primary w-100" disabled>
-                        <i class="bi bi-file-earmark-bar-graph"></i> Generate Report
-                    </button>
-                </span>
-                <span class="d-inline-block flex-fill" data-bs-toggle="tooltip" title="Available in upcoming milestone">
-                    <button class="btn btn-outline-secondary w-100" disabled>
-                        <i class="bi bi-download"></i> Export Data
-                    </button>
-                </span>
+                <a href="{{ url_for('reports.reports_home') }}" class="btn btn-outline-primary flex-fill">
+                    <i class="bi bi-file-earmark-bar-graph"></i> Generate Report
+                </a>
+                <a href="{{ url_for('reports.export_excel') }}" class="btn btn-outline-secondary flex-fill">
+                    <i class="bi bi-download"></i> Export Data
+                </a>
             </div>
         </div>
     </div>
@@ -163,6 +159,37 @@
             <h6 class="dashboard-card-title"><i class="bi bi-graph-up text-primary"></i> Daily Training Count</h6>
             <div class="chart-wrapper">
                 <canvas id="dailyChart"></canvas>
+            </div>
+            {% if total_trained == 0 %}
+            <p class="empty-state-text">No trainee records available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{# ------------------------------------------------------------------
+   MILESTONE 6, Section 4: additional analytics - Training per Month
+   and Location-wise Training.
+   ------------------------------------------------------------------
+#}
+<div class="row g-3 mt-1">
+    <div class="col-lg-6">
+        <div class="dashboard-card h-100">
+            <h6 class="dashboard-card-title"><i class="bi bi-calendar3 text-primary"></i> Training Per Month</h6>
+            <div class="chart-wrapper">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+            {% if total_trained == 0 %}
+            <p class="empty-state-text">No trainee records available yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="dashboard-card h-100">
+            <h6 class="dashboard-card-title"><i class="bi bi-geo-alt text-primary"></i> Location-wise Training</h6>
+            <div class="chart-wrapper">
+                <canvas id="locationChart"></canvas>
             </div>
             {% if total_trained == 0 %}
             <p class="empty-state-text">No trainee records available yet.</p>
@@ -250,6 +277,10 @@
         genderCounts: {{ gender_counts|tojson }},
         dailyLabels: {{ daily_labels|tojson }},
         dailyCounts: {{ daily_counts_list|tojson }},
+        monthlyLabels: {{ monthly_labels|tojson }},
+        monthlyCounts: {{ monthly_counts_list|tojson }},
+        locationLabels: {{ location_labels|tojson }},
+        locationCounts: {{ location_counts_list|tojson }},
         completedVsPending: {{ completed_vs_pending|tojson }}
     };
     initDashboardCharts(dashboardChartData);

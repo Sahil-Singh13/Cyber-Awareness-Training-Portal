@@ -40,6 +40,7 @@ from sqlalchemy import or_
 from config import Config
 from models import db
 from models.trainee import Trainee
+from models.activity_log import ActivityLog
 from utils.file_helpers import save_uploaded_file, delete_file_if_exists
 
 trainees_bp = Blueprint("trainees", __name__, url_prefix="/trainees")
@@ -213,6 +214,7 @@ def add_trainee():
             db.session.add(trainee)
             db.session.commit()
 
+            ActivityLog.log("trainee_added", f"Trainee '{trainee.full_name}' was added.")
             flash(f"Trainee '{trainee.full_name}' added successfully!", "success")
             return redirect(url_for("trainees.view_trainees"))
 
@@ -259,6 +261,7 @@ def view_trainees():
                 Trainee.mobile_number.ilike(like_pattern),
                 Trainee.reference_id.ilike(like_pattern),
                 Trainee.training_location.ilike(like_pattern),
+                Trainee.aadhaar_number.ilike(like_pattern),
             )
         )
 
@@ -367,6 +370,7 @@ def edit_trainee(trainee_id):
             trainee.remarks = form.remarks.data.strip() if form.remarks.data else None
 
             db.session.commit()
+            ActivityLog.log("trainee_updated", f"Trainee '{trainee.full_name}' was updated.")
             flash(f"Trainee '{trainee.full_name}' updated successfully!", "success")
             return redirect(url_for("trainees.view_trainee_detail", trainee_id=trainee.id))
 
@@ -405,6 +409,7 @@ def delete_trainee(trainee_id):
 
         db.session.delete(trainee)
         db.session.commit()
+        ActivityLog.log("trainee_deleted", f"Trainee '{name}' was deleted.")
         flash(f"Trainee '{name}' was deleted successfully.", "success")
     except Exception:
         db.session.rollback()

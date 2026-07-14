@@ -200,4 +200,62 @@ function initDashboardCharts(data) {
             }
         });
     }
+
+    // ---- Chart 4 (Milestone 6): Training Per Month ----
+    const monthlyCanvas = document.getElementById("monthlyChart");
+    if (monthlyCanvas) {
+        new Chart(monthlyCanvas, {
+            type: "line",
+            data: {
+                labels: data.monthlyLabels,
+                datasets: [{
+                    label: "People Trained",
+                    data: data.monthlyCounts,
+                    borderColor: "#0d6efd",
+                    backgroundColor: "rgba(13, 110, 253, 0.15)",
+                    fill: true,
+                    tension: 0.35,
+                    pointRadius: 4,
+                    pointBackgroundColor: "#0d6efd"
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: gridColor } }
+                }
+            }
+        });
+    }
+
+    // ---- Chart 5 (Milestone 6): Location-wise Training ----
+    const locationCanvas = document.getElementById("locationChart");
+    if (locationCanvas) {
+        new Chart(locationCanvas, {
+            type: "bar",
+            data: {
+                labels: data.locationLabels,
+                datasets: [{
+                    label: "People Trained",
+                    data: data.locationCounts,
+                    backgroundColor: "#6f42c1",
+                    borderRadius: 6,
+                    maxBarThickness: 28
+                }]
+            },
+            options: {
+                indexAxis: "y",
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: gridColor } },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+    }
 }

@@ -9,6 +9,8 @@ env/
 instance/
 *.db
 database/*.db
+database/backups/*.db
+!database/backups/.gitkeep
 
 # Uploaded user files (keep folder structure, ignore actual content)
 uploads/certificates/*

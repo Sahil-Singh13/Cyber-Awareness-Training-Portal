@@ -43,9 +43,13 @@ from models import db
 # db.create_all() below would silently create ZERO tables.
 from models.user import User
 from models.trainee import Trainee
+from models.app_setting import AppSetting
+from models.activity_log import ActivityLog
 from routes.auth import auth_bp
 from routes.dashboard import dashboard_bp
 from routes.trainees import trainees_bp
+from routes.reports import reports_bp
+from routes.settings import settings_bp
 
 
 def create_app():
@@ -154,6 +158,8 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(trainees_bp)
+    app.register_blueprint(reports_bp)
+    app.register_blueprint(settings_bp)
 
     # ------------------------------------------------------------------
     # GRACEFUL "FILE TOO LARGE" HANDLING (Milestone 5)
