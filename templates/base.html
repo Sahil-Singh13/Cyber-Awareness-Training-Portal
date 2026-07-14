@@ -19,6 +19,20 @@
 </head>
 <body>
 
+    {#
+       VERSION 1.0: GLOBAL TOP LOADING BAR
+       -----------------------------------
+       A thin progress bar fixed to the very top of the viewport, shared
+       by EVERY page because it lives here in base.html rather than in
+       any individual page template. It starts hidden (0% width, opacity
+       0) - static/js/main.js is responsible for animating it to life on
+       navigation (link clicks, form submits) and finishing it off on
+       page load, so this markup itself contains no visibility logic.
+       Placed as the very first element in <body> so it always renders
+       above everything else, matching the "works on every page" brief.
+    #}
+    <div id="topLoadingBar" class="top-loading-bar" aria-hidden="true"></div>
+
     {% block content %}{% endblock %}
 
     <!-- Bootstrap's JavaScript bundle (needed for dropdowns, modals, toasts, etc.) -->

@@ -4,6 +4,9 @@ __pycache__/
 venv/
 env/
 .venv/
+.pytest_cache/
+.coverage
+htmlcov/
 
 # Flask / instance data
 instance/
@@ -11,6 +14,10 @@ instance/
 database/*.db
 database/backups/*.db
 !database/backups/.gitkeep
+
+# Logs (Version 1.0)
+logs/*.log*
+!logs/.gitkeep
 
 # Uploaded user files (keep folder structure, ignore actual content)
 uploads/certificates/*

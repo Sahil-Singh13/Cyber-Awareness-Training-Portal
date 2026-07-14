@@ -78,28 +78,21 @@ class Trainee(db.Model):
     # TRAINING DETAILS
     # --------------------------------------------------------------
     training_date = db.Column(db.Date, nullable=False)
-    training_location = db.Column(db.String(150), nullable=False)
-
-    # Remarks is genuinely optional (e.g. "trained via evening session")
-    # so nullable=True (the default) - we don't force the admin to type
-    # something here.
-    remarks = db.Column(db.Text, nullable=True)
 
     # --------------------------------------------------------------
     # UPLOADED FILES
     # --------------------------------------------------------------
-    # IMPORTANT DESIGN DECISION: we do NOT store the actual PDF/photo
+    # IMPORTANT DESIGN DECISION: we do NOT store the actual certificate
     # bytes inside the database. Databases are slow and bloated when
     # storing large binary files. Instead, we save the physical file to
-    # disk (uploads/certificates/ and uploads/photos/, built in
+    # disk (uploads/certificates/, built in
     # Milestone 6) and store only the FILENAME here as a string pointer.
     # This is the standard, scalable approach used in real applications.
     #
     # nullable=True because a trainee record can be created first, with
-    # the certificate/photo uploaded a little later - we shouldn't force
-    # both to exist at the exact same moment.
+    # the certificate uploaded a little later - we shouldn't force it
+    # to exist at the exact same moment.
     certificate_filename = db.Column(db.String(255), nullable=True)
-    photo_filename = db.Column(db.String(255), nullable=True)
 
     # --------------------------------------------------------------
     # METADATA
@@ -158,7 +151,7 @@ class Trainee(db.Model):
             raise ValueError(f"Gender must be one of {allowed}.")
         return value
 
-    @validates("full_name", "reference_id", "training_location")
+    @validates("full_name", "reference_id")
     def validate_not_blank(self, key, value):
         # A common real bug: someone submits a form with just spaces
         # (" ") in a required text field. .strip() removes leading/
@@ -169,3 +162,19 @@ class Trainee(db.Model):
 
     def __repr__(self):
         return f"<Trainee id={self.id} name={self.full_name} ref={self.reference_id}>"
+
+    # --------------------------------------------------------------
+    # VERSION 1.0: DISPLAY HELPER (not a database column)
+    # --------------------------------------------------------------
+    @property
+    def masked_aadhaar(self):
+        """
+        Returns this trainee's Aadhaar number masked for on-screen
+        display (e.g. "XXXX XXXX 9012"). This is a Python @property,
+        NOT a database column - it computes the masked value on the
+        fly from the real aadhaar_number every time it's accessed, so
+        there's zero risk of it drifting out of sync and zero schema
+        change involved. See utils/security.py for the masking logic.
+        """
+        from utils.security import mask_aadhaar
+        return mask_aadhaar(self.aadhaar_number)

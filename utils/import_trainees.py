@@ -20,7 +20,7 @@ import pandas as pd
 
 REQUIRED_COLUMNS = [
     "Name", "Gender", "Age", "Mobile", "Aadhaar",
-    "Reference ID", "Training Date", "Location",
+    "Reference ID", "Training Date",
 ]
 
 VALID_GENDERS = {"Male", "Female", "Other"}
@@ -73,8 +73,6 @@ def validate_row(row_dict, existing_mobiles, existing_reference_ids, seen_mobile
     mobile = _clean_str(row_dict.get("Mobile"))
     aadhaar = _clean_str(row_dict.get("Aadhaar"))
     reference_id = _clean_str(row_dict.get("Reference ID"))
-    location = _clean_str(row_dict.get("Location"))
-    remarks = _clean_str(row_dict.get("Remarks"))
     age_raw = row_dict.get("Age")
     training_date_raw = row_dict.get("Training Date")
 
@@ -96,9 +94,6 @@ def validate_row(row_dict, existing_mobiles, existing_reference_ids, seen_mobile
         return False, "Aadhaar must be exactly 12 digits.", None
     if not reference_id:
         return False, "Reference ID is required.", None
-    if not location:
-        return False, "Training location is required.", None
-
     # Parse the training date - Pandas usually hands us either a
     # native Python/Pandas Timestamp (if Excel formatted the cell as a
     # date) or a plain string like "2026-07-10" (if it didn't) - we
@@ -132,8 +127,6 @@ def validate_row(row_dict, existing_mobiles, existing_reference_ids, seen_mobile
         "aadhaar_number": aadhaar,
         "reference_id": reference_id,
         "training_date": training_date,
-        "training_location": location,
-        "remarks": remarks or None,
     }
     return True, None, cleaned
 

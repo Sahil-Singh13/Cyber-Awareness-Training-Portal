@@ -57,43 +57,14 @@ working - stays completely untouched.
     color: var(--accent);
 }
 
-.trainee-thumb {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--border-color);
-}
-
-.trainee-thumb-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--bg-body);
-    color: var(--text-muted);
-    font-size: 1.1rem;
-}
-
 /* ------------------------------------------------------------------
    TRAINEE DETAIL PAGE
    ------------------------------------------------------------------ */
-.trainee-detail-photo {
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid var(--accent);
-}
-
 .detail-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem 1.5rem;
     margin: 0;
-}
-
-.detail-grid-full {
-    grid-column: 1 / -1;
 }
 
 .detail-grid dt {

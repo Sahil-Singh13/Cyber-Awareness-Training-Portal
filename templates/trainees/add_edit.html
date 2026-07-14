@@ -1,175 +1,23 @@
 {% extends "dashboard_layout.html" %}
-
 {% block title %}{{ "Edit Trainee" if mode == "edit" else "Add Trainee" }} - Cyber Awareness Training Portal{% endblock %}
-
-{% block dashboard_extra_head %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/trainees.css') }}">
-{% endblock %}
-
+{% block dashboard_extra_head %}<link rel="stylesheet" href="{{ url_for('static', filename='css/trainees.css') }}">{% endblock %}
 {% block page_content %}
-
 <div class="page-heading d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <div>
-        <h4 class="fw-bold mb-1">{{ "Edit Trainee" if mode == "edit" else "Add New Trainee" }}</h4>
-        <p class="text-muted mb-0">
-            {% if mode == "edit" %}
-                Update {{ trainee.full_name }}'s training record.
-            {% else %}
-                Fill in the details below to register a new trainee.
-            {% endif %}
-        </p>
+    <div><h4 class="fw-bold mb-1">{{ "Edit Trainee" if mode == "edit" else "Add New Trainee" }}</h4><p class="text-muted mb-0">{{ ("Update " ~ trainee.full_name ~ "'s training record.") if mode == "edit" else "Fill in the details below to register a new trainee." }}</p></div>
+    <a href="{{ url_for('trainees.view_trainees') }}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Back to List</a>
+</div>
+<div class="dashboard-card"><form method="POST" enctype="multipart/form-data" novalidate id="traineeForm">{{ form.hidden_tag() }}
+    <div class="row g-3">
+        <div class="col-md-6"><div class="form-floating">{{ form.full_name(class="form-control" + (" is-invalid" if form.full_name.errors else ""), placeholder="Full Name") }}<label for="{{ form.full_name.id }}"><i class="bi bi-person"></i> Full Name</label>{% for error in form.full_name.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}</div></div>
+        <div class="col-md-3"><div class="form-floating">{{ form.gender(class="form-select" + (" is-invalid" if form.gender.errors else "")) }}<label for="{{ form.gender.id }}"><i class="bi bi-people"></i> Gender</label>{% for error in form.gender.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}</div></div>
+        <div class="col-md-3"><div class="form-floating">{{ form.age(class="form-control" + (" is-invalid" if form.age.errors else ""), placeholder="Age", min="5", max="100") }}<label for="{{ form.age.id }}"><i class="bi bi-calendar-heart"></i> Age</label>{% for error in form.age.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}</div></div>
+        <div class="col-md-6"><div class="form-floating">{{ form.mobile_number(class="form-control" + (" is-invalid" if form.mobile_number.errors else ""), placeholder="Mobile Number", maxlength="10", inputmode="numeric") }}<label for="{{ form.mobile_number.id }}"><i class="bi bi-phone"></i> Mobile Number</label>{% for error in form.mobile_number.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}</div></div>
+        <div class="col-md-6"><div class="form-floating">{{ form.aadhaar_number(class="form-control" + (" is-invalid" if form.aadhaar_number.errors else ""), placeholder="Aadhaar Number", maxlength="12", inputmode="numeric") }}<label for="{{ form.aadhaar_number.id }}"><i class="bi bi-person-vcard"></i> Aadhaar Number</label>{% for error in form.aadhaar_number.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}</div></div>
+        <div class="col-md-6"><div class="form-floating">{{ form.reference_id(class="form-control" + (" is-invalid" if form.reference_id.errors else ""), placeholder="Reference ID") }}<label for="{{ form.reference_id.id }}"><i class="bi bi-upc-scan"></i> Reference ID</label>{% for error in form.reference_id.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}</div></div>
+        <div class="col-md-6"><div class="form-floating">{{ form.training_date(class="form-control" + (" is-invalid" if form.training_date.errors else ""), placeholder="Training Date", type="date") }}<label for="{{ form.training_date.id }}"><i class="bi bi-calendar-event"></i> Training Date</label>{% for error in form.training_date.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}</div></div>
+        <div class="col-md-6"><label class="form-label fw-semibold"><i class="bi bi-file-earmark-pdf"></i> Certificate (PDF)</label>{{ form.certificate(class="form-control" + (" is-invalid" if form.certificate.errors else ""), accept=".pdf") }}{% for error in form.certificate.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}{% if mode == "edit" and trainee.certificate_filename %}<div class="form-text"><i class="bi bi-check-circle-fill text-success"></i> Current file on record. <a href="{{ url_for('trainees.download_certificate', filename=trainee.certificate_filename) }}" target="_blank">Preview / Download</a> — choose a new file above only if you want to replace it.</div>{% else %}<div class="form-text">PDF only, max 5 MB.</div>{% endif %}</div>
     </div>
-    <a href="{{ url_for('trainees.view_trainees') }}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left"></i> Back to List
-    </a>
-</div>
-
-<div class="dashboard-card">
-    {#
-        enctype="multipart/form-data" is REQUIRED whenever a form
-        includes a file input - without it, the browser would only
-        submit the file's NAME as plain text, not its actual contents.
-        novalidate turns off the browser's own built-in validation popups
-        so our styled Bootstrap "is-invalid" feedback (driven by
-        form.field.errors from Flask-WTF) is what the admin sees instead.
-    #}
-    <form method="POST" enctype="multipart/form-data" novalidate id="traineeForm">
-        {{ form.hidden_tag() }}
-
-        <div class="row g-3">
-            {# ---------------- Full Name ---------------- #}
-            <div class="col-md-6">
-                <div class="form-floating">
-                    {{ form.full_name(class="form-control" + (" is-invalid" if form.full_name.errors else ""), placeholder="Full Name") }}
-                    <label for="{{ form.full_name.id }}"><i class="bi bi-person"></i> Full Name</label>
-                    {% for error in form.full_name.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
-                </div>
-            </div>
-
-            {# ---------------- Gender ---------------- #}
-            <div class="col-md-3">
-                <div class="form-floating">
-                    {{ form.gender(class="form-select" + (" is-invalid" if form.gender.errors else "")) }}
-                    <label for="{{ form.gender.id }}"><i class="bi bi-people"></i> Gender</label>
-                    {% for error in form.gender.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
-                </div>
-            </div>
-
-            {# ---------------- Age ---------------- #}
-            <div class="col-md-3">
-                <div class="form-floating">
-                    {{ form.age(class="form-control" + (" is-invalid" if form.age.errors else ""), placeholder="Age", min="5", max="100") }}
-                    <label for="{{ form.age.id }}"><i class="bi bi-calendar-heart"></i> Age</label>
-                    {% for error in form.age.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
-                </div>
-            </div>
-
-            {# ---------------- Mobile Number ---------------- #}
-            <div class="col-md-6">
-                <div class="form-floating">
-                    {{ form.mobile_number(class="form-control" + (" is-invalid" if form.mobile_number.errors else ""), placeholder="Mobile Number", maxlength="10", inputmode="numeric") }}
-                    <label for="{{ form.mobile_number.id }}"><i class="bi bi-phone"></i> Mobile Number</label>
-                    {% for error in form.mobile_number.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
-                </div>
-            </div>
-
-            {# ---------------- Aadhaar Number ---------------- #}
-            <div class="col-md-6">
-                <div class="form-floating">
-                    {{ form.aadhaar_number(class="form-control" + (" is-invalid" if form.aadhaar_number.errors else ""), placeholder="Aadhaar Number", maxlength="12", inputmode="numeric") }}
-                    <label for="{{ form.aadhaar_number.id }}"><i class="bi bi-person-vcard"></i> Aadhaar Number</label>
-                    {% for error in form.aadhaar_number.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
-                </div>
-            </div>
-
-            {# ---------------- Reference ID ---------------- #}
-            <div class="col-md-6">
-                <div class="form-floating">
-                    {{ form.reference_id(class="form-control" + (" is-invalid" if form.reference_id.errors else ""), placeholder="Reference ID") }}
-                    <label for="{{ form.reference_id.id }}"><i class="bi bi-upc-scan"></i> Reference ID</label>
-                    {% for error in form.reference_id.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
-                </div>
-            </div>
-
-            {# ---------------- Training Date ---------------- #}
-            <div class="col-md-6">
-                <div class="form-floating">
-                    {{ form.training_date(class="form-control" + (" is-invalid" if form.training_date.errors else ""), placeholder="Training Date", type="date") }}
-                    <label for="{{ form.training_date.id }}"><i class="bi bi-calendar-event"></i> Training Date</label>
-                    {% for error in form.training_date.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
-                </div>
-            </div>
-
-            {# ---------------- Training Location ---------------- #}
-            <div class="col-md-6">
-                <div class="form-floating">
-                    {{ form.training_location(class="form-control" + (" is-invalid" if form.training_location.errors else ""), placeholder="Training Location") }}
-                    <label for="{{ form.training_location.id }}"><i class="bi bi-geo-alt"></i> Training Location</label>
-                    {% for error in form.training_location.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
-                </div>
-            </div>
-
-            {# ---------------- Remarks ---------------- #}
-            <div class="col-12">
-                <div class="form-floating">
-                    {{ form.remarks(class="form-control" + (" is-invalid" if form.remarks.errors else ""), placeholder="Remarks", style="height: 90px") }}
-                    <label for="{{ form.remarks.id }}"><i class="bi bi-chat-left-text"></i> Remarks (optional)</label>
-                    {% for error in form.remarks.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
-                </div>
-            </div>
-
-            {# ---------------- Certificate Upload ---------------- #}
-            <div class="col-md-6">
-                <label class="form-label fw-semibold"><i class="bi bi-file-earmark-pdf"></i> Certificate (PDF)</label>
-                {{ form.certificate(class="form-control" + (" is-invalid" if form.certificate.errors else ""), accept=".pdf") }}
-                {% for error in form.certificate.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
-                {% if mode == "edit" and trainee.certificate_filename %}
-                    <div class="form-text">
-                        <i class="bi bi-check-circle-fill text-success"></i> Current file on record.
-                        <a href="{{ url_for('trainees.download_certificate', filename=trainee.certificate_filename) }}" target="_blank">Preview / Download</a>
-                        — choose a new file above only if you want to replace it.
-                    </div>
-                {% else %}
-                    <div class="form-text">PDF only, max 5 MB.</div>
-                {% endif %}
-            </div>
-
-            {# ---------------- Photo Upload ---------------- #}
-            <div class="col-md-6">
-                <label class="form-label fw-semibold"><i class="bi bi-image"></i> Training Photo (JPG/PNG)</label>
-                {{ form.photo(class="form-control" + (" is-invalid" if form.photo.errors else ""), accept=".jpg,.jpeg,.png") }}
-                {% for error in form.photo.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
-                {% if mode == "edit" and trainee.photo_filename %}
-                    <div class="form-text">
-                        <i class="bi bi-check-circle-fill text-success"></i> Current photo on record.
-                        <a href="{{ url_for('trainees.view_photo', filename=trainee.photo_filename) }}" target="_blank">Preview</a>
-                        — choose a new file above only if you want to replace it.
-                    </div>
-                {% else %}
-                    <div class="form-text">JPG, JPEG, or PNG only, max 5 MB.</div>
-                {% endif %}
-            </div>
-        </div>
-
-        <hr class="my-4">
-
-        <div class="d-flex flex-wrap gap-2">
-            <button type="submit" class="btn btn-primary px-4" id="traineeSubmitBtn">
-                <span id="traineeSubmitText"><i class="bi bi-check2-circle"></i> {{ "Update Trainee" if mode == "edit" else "Save Trainee" }}</span>
-                <span id="traineeSubmitSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span>
-            </button>
-            <button type="reset" class="btn btn-outline-secondary px-4">
-                <i class="bi bi-arrow-counterclockwise"></i> Reset
-            </button>
-            <a href="{{ url_for('trainees.view_trainees') }}" class="btn btn-outline-danger px-4">
-                <i class="bi bi-x-circle"></i> Cancel
-            </a>
-        </div>
-    </form>
-</div>
-
+    <hr class="my-4"><div class="d-flex flex-wrap gap-2"><button type="submit" class="btn btn-primary px-4" id="traineeSubmitBtn"><span id="traineeSubmitText"><i class="bi bi-check2-circle"></i> {{ "Update Trainee" if mode == "edit" else "Save Trainee" }}</span><span id="traineeSubmitSpinner" class="spinner-border spinner-border-sm ms-2 d-none" role="status" aria-hidden="true"></span></button><button type="reset" class="btn btn-outline-secondary px-4"><i class="bi bi-arrow-counterclockwise"></i> Reset</button><a href="{{ url_for('trainees.view_trainees') }}" class="btn btn-outline-danger px-4"><i class="bi bi-x-circle"></i> Cancel</a></div>
+</form></div>
 {% endblock %}
-
-{% block dashboard_extra_scripts %}
-<script src="{{ url_for('static', filename='js/trainees.js') }}"></script>
-{% endblock %}
+{% block dashboard_extra_scripts %}<script src="{{ url_for('static', filename='js/trainees.js') }}"></script>{% endblock %}

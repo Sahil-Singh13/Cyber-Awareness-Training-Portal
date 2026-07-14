@@ -1,0 +1,35 @@
+{#
+templates/errors/500.html
+--------------------------
+VERSION 1.0: shown when an unhandled exception reaches Flask (app.py's
+@app.errorhandler(500)). The route-level try/except blocks throughout
+this app (add/edit/delete trainee, import, restore, etc.) already
+catch the errors we anticipate and show a friendly flash message
+instead - this page is the final safety net for anything truly
+unexpected, so the admin never sees a raw Python traceback.
+#}
+{% extends "base.html" %}
+
+{% block title %}Something Went Wrong - Cyber Awareness Training Portal{% endblock %}
+
+{% block content %}
+<div class="auth-page d-flex justify-content-center align-items-center">
+    <div class="auth-card card border-0 shadow-lg text-center">
+        <div class="card-body p-4 p-md-5">
+            <div class="auth-icon-circle mx-auto mb-3" style="background:#dc3545;">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <h1 class="fw-bold mb-1" style="font-size:2.5rem;">500</h1>
+            <h5 class="fw-semibold mb-2">Something Went Wrong</h5>
+            <p class="text-muted mb-4">
+                An unexpected error occurred on our end. This has been logged,
+                and nothing you were working on should have been lost. Please
+                try again in a moment.
+            </p>
+            <a href="{{ url_for('index') }}" class="btn btn-primary px-4">
+                <i class="bi bi-house-door"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

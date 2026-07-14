@@ -231,31 +231,4 @@ function initDashboardCharts(data) {
         });
     }
 
-    // ---- Chart 5 (Milestone 6): Location-wise Training ----
-    const locationCanvas = document.getElementById("locationChart");
-    if (locationCanvas) {
-        new Chart(locationCanvas, {
-            type: "bar",
-            data: {
-                labels: data.locationLabels,
-                datasets: [{
-                    label: "People Trained",
-                    data: data.locationCounts,
-                    backgroundColor: "#6f42c1",
-                    borderRadius: 6,
-                    maxBarThickness: 28
-                }]
-            },
-            options: {
-                indexAxis: "y",
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    x: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: gridColor } },
-                    y: { grid: { display: false } }
-                }
-            }
-        });
-    }
 }

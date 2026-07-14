@@ -1,127 +1,143 @@
-# Cyber Awareness Training Management Portal
+# Cyber Awareness Training Portal
 
-A full-stack web application built with **Flask + SQLite + Bootstrap 5**
-to manage cybersecurity awareness training records — trainees,
-certificates, geotagged photos, progress tracking, and reports —
-replacing manual Excel sheets and folders.
+**Version 1.0** — A production-ready Flask web application for managing
+cybersecurity awareness training records: trainees, certificates,
+progress tracking, reports, Excel import, and system settings.
 
-Built as part of the **WNS Cybersecurity Community Development Program**
-college assignment.
+Built for the **WNS Cybersecurity Community Development Program**.
 
-> 🚧 **Status: Under active development (Milestone 6 of 10 complete)**
-> This README will be filled in fully as each milestone is completed.
+---
+
+## What This App Does
+
+- Register trainees with personal, contact, and training details
+- Upload and securely serve certificates (PDF)
+- Search, sort, and paginate trainee records
+- View a live analytics dashboard (gender split, daily/monthly training
+  counts and progress toward a training goal)
+- Export trainee data as PDF, Excel, or CSV reports (with Aadhaar
+  numbers masked for privacy)
+- Bulk-import trainees from an Excel spreadsheet, with row-by-row
+  validation and a clear import summary
+- Manage system settings: change password, update training goal, back
+  up / export / restore the database, and review a recent-activity log
+- Admin authentication with login throttling and a default-password
+  reminder
 
 ---
 
 ## Tech Stack
 
-| Layer      | Technology                                              |
-|------------|----------------------------------------------------------|
-| Frontend   | HTML5, CSS3, Bootstrap 5, JavaScript, Chart.js            |
-| Backend    | Python, Flask (App Factory + Blueprints)                  |
-| Database   | SQLite (via SQLAlchemy ORM)                                |
-| Auth       | Flask-Login, Werkzeug password hashing                     |
-| Forms      | Flask-WTF                                                   |
-| Reports    | ReportLab (PDF), OpenPyXL/Pandas (Excel/CSV)                |
-| Images     | Pillow                                                       |
+| Layer      | Technology                                        |
+|------------|-----------------------------------------------------|
+| Frontend   | HTML5, CSS3, Bootstrap 5, JavaScript, Chart.js        |
+| Backend    | Python, Flask (App Factory + Blueprints)              |
+| Database   | SQLite (via SQLAlchemy ORM)                           |
+| Auth       | Flask-Login, Werkzeug password hashing                |
+| Forms      | Flask-WTF (CSRF protection + validation)              |
+| Reports    | ReportLab (PDF), OpenPyXL/Pandas (Excel/CSV)          |
+| Images     | Pillow                                                 |
+| Testing    | pytest                                                 |
+| Config     | python-dotenv (.env support)                           |
+
+See [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md) for how these pieces
+fit together, and [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for what
+every file/folder is for.
 
 ---
 
-## Project Structure
+## Quick Start
 
-```
-cyber_training_portal/
-│
-├── app.py                  # Application entry point (App Factory pattern)
-├── config.py                # Centralized configuration (DB, uploads, secrets)
-├── requirements.txt         # Python dependencies
-│
-├── models/                  # SQLAlchemy database models (Milestone 2)
-├── routes/                  # Flask Blueprints - one file per feature area
-├── utils/                   # Helper functions (validation, file handling, reports)
-├── database/                 # SQLite database file lives here (training.db)
-│
-├── templates/                # Jinja2 HTML templates
-│   ├── base.html               # Shared layout (navbar/sidebar wrap here)
-│   ├── dashboard_layout.html    # Sidebar + navbar + footer shell (Milestone 4)
-│   ├── partials/                # Reusable sidebar/navbar/footer/toasts
-│   ├── trainees/                # Add/Edit/List/Detail (Milestone 5)
-│   ├── reports/                 # Export + Import UI (Milestone 6)
-│   └── settings/                # Settings page (Milestone 6)
-│
-├── static/
-│   ├── css/style.css           # Custom Blue+White theme
-│   ├── js/main.js              # Shared JS (dark mode, toasts, search)
-│   └── images/                 # Logo, icons, illustrations
-│
-└── uploads/
-    ├── certificates/            # Uploaded PDF certificates
-    └── photos/                  # Uploaded geotagged training photos
-```
+### 1. Clone and set up a virtual environment
 
----
-
-## Installation & Setup
-
-### 1. Prerequisites
-- Python 3.10+ installed
-- pip (comes with Python)
-
-### 2. Create a virtual environment (recommended)
 ```bash
 python -m venv venv
-
-# Activate it:
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
-```
-
-### 3. Install dependencies
-```bash
+source venv/bin/activate        # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 4. Run the application
+### 2. Configure environment variables (optional but recommended)
+
+```bash
+cp .env.example .env
+# edit .env - at minimum, set a real SECRET_KEY before deploying
+```
+
+The app runs perfectly well with **no** `.env` file for local
+development — every setting has a safe default. `.env` only becomes
+important once you deploy somewhere real; see
+[DEPLOYMENT.md](DEPLOYMENT.md).
+
+### 3. Run the app
+
 ```bash
 python app.py
 ```
 
-### 5. Open in your browser
+Visit **http://127.0.0.1:5000** in your browser. On first run, the app
+automatically creates the database and a default admin account:
+
 ```
-http://127.0.0.1:5000
+Username: admin
+Password: admin123
 ```
 
-You'll be redirected to the login page. Log in with the default admin
-account:
+You'll be reminded to change this password on every login until you do
+(Settings → Change Password).
 
-- **Username:** `admin`
-- **Password:** `admin123`
+### 4. Run the tests
 
-(Change this immediately from Settings after your first login.)
+```bash
+pytest
+```
 
----
-
-## Milestones Roadmap
-
-- [x] **Milestone 1** — Project Structure
-- [x] **Milestone 2** — Database Design
-- [x] **Milestone 3** — Authentication (Login/Logout, Admin)
-- [x] **Milestone 4** — Dashboard (stats, charts, sidebar UI)
-- [x] **Milestone 5** — Trainee Management (Add/View/Edit/Delete/Search, file uploads)
-- [x] **Milestone 6** — Reports (PDF/Excel/CSV), Excel Import, DB Backup/Restore, Settings, Activity Log, extra Analytics
-- [ ] **Milestone 7** — Testing
-- [ ] **Milestone 8** — Deployment
+See [TESTING_CHECKLIST.md](TESTING_CHECKLIST.md) for what's covered and
+how to verify the app manually, feature by feature.
 
 ---
 
-## Screenshots
+## Environment Variables
 
-_(Will be added as each milestone introduces new UI)_
+| Variable       | Purpose                                             | Default (dev)                          |
+|----------------|-------------------------------------------------------|-----------------------------------------|
+| `APP_ENV`      | `development` \| `testing` \| `production`             | `development`                            |
+| `SECRET_KEY`   | Signs session cookies + CSRF tokens                    | insecure placeholder (dev/test only)     |
+| `DATABASE_URL` | SQLAlchemy database URI                                | local SQLite file in `database/`         |
+| `LOG_LEVEL`    | `DEBUG` \| `INFO` \| `WARNING` \| `ERROR`               | `INFO`                                   |
+
+Full details in [`.env.example`](.env.example) and
+[DEPLOYMENT.md](DEPLOYMENT.md).
 
 ---
 
-## Future Improvements
+## Security Notes
 
-_(Will be documented as the project matures)_
+- Passwords are hashed with Werkzeug's `generate_password_hash`
+  (scrypt) - plain-text passwords are never stored.
+- Aadhaar numbers are stored in full (required for uniqueness/official
+  records) but are **masked in the UI and in every generated report**
+  by default (`XXXX XXXX 9012`), with an explicit "reveal" toggle on
+  the trainee detail page for admins who need the full number.
+- CSRF protection is applied globally to every state-changing request.
+- Login attempts are throttled per-username after repeated failures.
+- Certificates are served through authenticated routes, not
+  Flask's public `static/` folder.
+- `ProductionConfig` refuses to start with the placeholder `SECRET_KEY`
+  - see [DEPLOYMENT.md](DEPLOYMENT.md).
+
+---
+
+## Documentation
+
+- [SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md) — how the pieces fit together
+- [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) — file/folder reference
+- [TESTING_CHECKLIST.md](TESTING_CHECKLIST.md) — automated + manual verification
+- [DEPLOYMENT.md](DEPLOYMENT.md) — deploying to a real server
+
+---
+
+## License / Attribution
+
+Built as a learning project for the WNS Cybersecurity Community
+Development Program. Not intended for redistribution as a general
+commercial product without adaptation.

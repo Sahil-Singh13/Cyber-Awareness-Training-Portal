@@ -35,7 +35,7 @@
             <div class="input-group">
                 <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
                 <input type="text" name="q" id="searchInput" class="form-control"
-                       placeholder="Search by name, mobile, Aadhaar, reference ID, or location..."
+                       placeholder="Search by name, mobile, Aadhaar, or reference ID..."
                        value="{{ search_query }}">
             </div>
         </div>
@@ -54,14 +54,12 @@
         <table class="table align-middle trainee-table mb-0" id="traineeTable">
             <thead>
                 <tr>
-                    <th>Photo</th>
                     <th><a href="{{ url_for('trainees.view_trainees', q=search_query, sort='name', order='asc' if sort_by != 'name' or order == 'desc' else 'desc') }}" class="sort-link">Name {% if sort_by == 'name' %}<i class="bi bi-arrow-{{ 'down' if order == 'desc' else 'up' }}"></i>{% endif %}</a></th>
                     <th>Gender</th>
                     <th><a href="{{ url_for('trainees.view_trainees', q=search_query, sort='age', order='asc' if sort_by != 'age' or order == 'desc' else 'desc') }}" class="sort-link">Age {% if sort_by == 'age' %}<i class="bi bi-arrow-{{ 'down' if order == 'desc' else 'up' }}"></i>{% endif %}</a></th>
                     <th>Mobile</th>
                     <th>Reference ID</th>
                     <th><a href="{{ url_for('trainees.view_trainees', q=search_query, sort='training_date', order='asc' if sort_by != 'training_date' or order == 'desc' else 'desc') }}" class="sort-link">Training Date {% if sort_by == 'training_date' %}<i class="bi bi-arrow-{{ 'down' if order == 'desc' else 'up' }}"></i>{% endif %}</a></th>
-                    <th>Location</th>
                     <th>Certificate</th>
                     <th class="text-end">Actions</th>
                 </tr>
@@ -69,16 +67,6 @@
             <tbody>
                 {% for trainee in trainees %}
                 <tr>
-                    <td>
-                        {% if trainee.photo_filename %}
-                            <img src="{{ url_for('trainees.view_photo', filename=trainee.photo_filename) }}"
-                                 alt="{{ trainee.full_name }}" class="trainee-thumb">
-                        {% else %}
-                            <div class="trainee-thumb trainee-thumb-placeholder">
-                                <i class="bi bi-person"></i>
-                            </div>
-                        {% endif %}
-                    </td>
                     <td>
                         <a href="{{ url_for('trainees.view_trainee_detail', trainee_id=trainee.id) }}" class="fw-semibold text-decoration-none">
                             {{ trainee.full_name }}
@@ -89,7 +77,6 @@
                     <td>{{ trainee.mobile_number }}</td>
                     <td><code>{{ trainee.reference_id }}</code></td>
                     <td>{{ trainee.training_date.strftime("%d %b %Y") }}</td>
-                    <td>{{ trainee.training_location }}</td>
                     <td>
                         {% if trainee.certificate_filename %}
                             <span class="badge status-badge status-badge-success"><i class="bi bi-check-circle-fill"></i> Uploaded</span>
@@ -162,7 +149,7 @@
         <i class="bi bi-inbox"></i>
         {% if search_query %}
             <p class="mb-0">No trainees match "<strong>{{ search_query }}</strong>".</p>
-            <p class="empty-state-sub">Try a different name, mobile number, reference ID, or location.</p>
+            <p class="empty-state-sub">Try a different name, mobile number, or reference ID.</p>
         {% else %}
             <p class="mb-0">No trainee records available yet.</p>
             <p class="empty-state-sub">Click "Add Trainee" above to register your first trainee.</p>
@@ -191,7 +178,7 @@
             <div class="modal-body">
                 <p class="mb-0">
                     Are you sure you want to delete <strong id="deleteModalTraineeName"></strong>'s record?
-                    This will permanently remove their database entry, certificate, and photo. This action cannot be undone.
+                    This will permanently remove their database entry and certificate. This action cannot be undone.
                 </p>
             </div>
             <div class="modal-footer border-0">

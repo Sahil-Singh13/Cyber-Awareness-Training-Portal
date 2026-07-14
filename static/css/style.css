@@ -14,6 +14,66 @@ body {
 }
 
 /* ------------------------------------------------------------------
+   VERSION 1.0: GLOBAL TOP LOADING BAR
+   ------------------------------------------------------------------
+   Fixed to the very top of the viewport (see base.html) so it appears
+   consistently on every page, logged in or not. main.js toggles the
+   `.is-loading` and `.is-done` classes to animate its width/opacity;
+   this file only defines what each state LOOKS like.
+*/
+.top-loading-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    width: 0%;
+    background: linear-gradient(90deg, #0d6efd, #6ea8fe);
+    z-index: 2000;
+    opacity: 0;
+    transition: width 0.25s ease, opacity 0.2s ease;
+    box-shadow: 0 0 8px rgba(13, 110, 253, 0.6);
+}
+
+.top-loading-bar.is-loading {
+    opacity: 1;
+}
+
+.top-loading-bar.is-done {
+    width: 100%;
+    opacity: 0;
+    transition: width 0.2s ease, opacity 0.4s ease 0.15s;
+}
+
+/* ------------------------------------------------------------------
+   VERSION 1.0: SMALL GLOBAL POLISH UTILITIES
+   ------------------------------------------------------------------
+   A few shared, low-risk tweaks that improve spacing/consistency
+   across every page without touching any page-specific stylesheet.
+*/
+* {
+    scrollbar-width: thin;
+}
+
+a,
+button {
+    outline-offset: 2px;
+}
+
+.text-truncate-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+@media (max-width: 575.98px) {
+    .auth-card {
+        max-width: 100%;
+    }
+}
+
+
+/* ------------------------------------------------------------------
    MILESTONE 3: AUTH PAGES (Login + protected placeholder dashboard)
    ------------------------------------------------------------------
    These two pages share the same "centered card on a soft gradient

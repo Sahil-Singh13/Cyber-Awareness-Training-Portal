@@ -3,7 +3,7 @@ routes/trainees.py
 -------------------
 MILESTONE 5: full CRUD (Create, Read, Update, Delete) for trainee
 records, plus search/sort/pagination on the list page and protected
-file serving for certificates/photos.
+file serving for certificates.
 
 IMPORTANT SCHEMA NOTE (please read):
 --------------------------------------
@@ -31,7 +31,7 @@ from flask_login import login_required
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed, FileSize
 from wtforms import (
-    StringField, IntegerField, SelectField, DateField, TextAreaField,
+    StringField, IntegerField, SelectField, DateField,
     SubmitField
 )
 from wtforms.validators import DataRequired, NumberRange, Regexp, Length, Optional, ValidationError
@@ -54,7 +54,7 @@ class TraineeForm(FlaskForm):
     One form class, reused for BOTH Add and Edit. The only difference
     between the two is that Edit sets `form.trainee_id` before
     validation runs (see the uniqueness validators below), and Edit's
-    file fields are optional even though a certificate/photo may
+    file fields are optional even though a certificate may
     already exist (Edit only replaces a file if a NEW one was chosen).
     """
 
@@ -110,13 +110,6 @@ class TraineeForm(FlaskForm):
         validators=[DataRequired(message="Training date is required.")]
     )
 
-    training_location = StringField(
-        "Training Location",
-        validators=[DataRequired(message="Training location is required."), Length(max=150)]
-    )
-
-    remarks = TextAreaField("Remarks", validators=[Optional(), Length(max=2000)])
-
     # FileAllowed checks the file EXTENSION. FileSize checks the
     # browser-reported size before we ever touch disk - a fast first
     # line of defense; utils/file_helpers.py re-validates the extension
@@ -127,15 +120,6 @@ class TraineeForm(FlaskForm):
         validators=[
             Optional(),
             FileAllowed(["pdf"], message="Only PDF files are allowed for certificates."),
-            FileSize(max_size=Config.MAX_CONTENT_LENGTH, message="File is too large (max 5 MB).")
-        ]
-    )
-
-    photo = FileField(
-        "Training Photo (JPG/PNG)",
-        validators=[
-            Optional(),
-            FileAllowed(["jpg", "jpeg", "png"], message="Only JPG, JPEG, or PNG files are allowed for photos."),
             FileSize(max_size=Config.MAX_CONTENT_LENGTH, message="File is too large (max 5 MB).")
         ]
     )
@@ -194,10 +178,6 @@ def add_trainee():
             certificate_filename = save_uploaded_file(
                 form.certificate.data, Config.CERTIFICATE_FOLDER, Config.ALLOWED_CERTIFICATE_EXTENSIONS
             )
-            photo_filename = save_uploaded_file(
-                form.photo.data, Config.PHOTO_FOLDER, Config.ALLOWED_PHOTO_EXTENSIONS
-            )
-
             trainee = Trainee(
                 full_name=form.full_name.data.strip(),
                 gender=form.gender.data,
@@ -206,10 +186,7 @@ def add_trainee():
                 aadhaar_number=form.aadhaar_number.data.strip(),
                 reference_id=form.reference_id.data.strip(),
                 training_date=form.training_date.data,
-                training_location=form.training_location.data.strip(),
-                remarks=form.remarks.data.strip() if form.remarks.data else None,
                 certificate_filename=certificate_filename,
-                photo_filename=photo_filename,
             )
             db.session.add(trainee)
             db.session.commit()
@@ -260,7 +237,6 @@ def view_trainees():
                 Trainee.full_name.ilike(like_pattern),
                 Trainee.mobile_number.ilike(like_pattern),
                 Trainee.reference_id.ilike(like_pattern),
-                Trainee.training_location.ilike(like_pattern),
                 Trainee.aadhaar_number.ilike(like_pattern),
             )
         )
@@ -352,13 +328,6 @@ def edit_trainee(trainee_id):
                 delete_file_if_exists(Config.CERTIFICATE_FOLDER, trainee.certificate_filename)
                 trainee.certificate_filename = new_certificate
 
-            new_photo = save_uploaded_file(
-                form.photo.data, Config.PHOTO_FOLDER, Config.ALLOWED_PHOTO_EXTENSIONS
-            )
-            if new_photo:
-                delete_file_if_exists(Config.PHOTO_FOLDER, trainee.photo_filename)
-                trainee.photo_filename = new_photo
-
             trainee.full_name = form.full_name.data.strip()
             trainee.gender = form.gender.data
             trainee.age = form.age.data
@@ -366,8 +335,6 @@ def edit_trainee(trainee_id):
             trainee.aadhaar_number = form.aadhaar_number.data.strip()
             trainee.reference_id = form.reference_id.data.strip()
             trainee.training_date = form.training_date.data
-            trainee.training_location = form.training_location.data.strip()
-            trainee.remarks = form.remarks.data.strip() if form.remarks.data else None
 
             db.session.commit()
             ActivityLog.log("trainee_updated", f"Trainee '{trainee.full_name}' was updated.")
@@ -405,7 +372,6 @@ def delete_trainee(trainee_id):
         # if file deletion fails for some odd reason (e.g. permissions),
         # we haven't already lost the database record pointing at it.
         delete_file_if_exists(Config.CERTIFICATE_FOLDER, trainee.certificate_filename)
-        delete_file_if_exists(Config.PHOTO_FOLDER, trainee.photo_filename)
 
         db.session.delete(trainee)
         db.session.commit()
@@ -419,11 +385,11 @@ def delete_trainee(trainee_id):
 
 
 # ==========================================================================
-# PROTECTED FILE SERVING (certificates & photos)
+# PROTECTED FILE SERVING (certificates)
 # ==========================================================================
 # We deliberately do NOT put uploads/ inside static/. Flask's static
 # folder is served to ANYONE with the URL, no login required. Trainee
-# certificates and photos contain personal information, so instead we
+# certificates contain personal information, so instead we
 # serve them through these two @login_required routes - only a logged
 # in admin can ever fetch a file, and send_from_directory() safely
 # resolves the path (it refuses to serve anything outside the given
@@ -435,11 +401,3 @@ def download_certificate(filename):
     if not os.path.exists(os.path.join(Config.CERTIFICATE_FOLDER, filename)):
         abort(404)
     return send_from_directory(Config.CERTIFICATE_FOLDER, filename, as_attachment=True)
-
-
-@trainees_bp.route("/photos/<path:filename>")
-@login_required
-def view_photo(filename):
-    if not os.path.exists(os.path.join(Config.PHOTO_FOLDER, filename)):
-        abort(404)
-    return send_from_directory(Config.PHOTO_FOLDER, filename, as_attachment=False)

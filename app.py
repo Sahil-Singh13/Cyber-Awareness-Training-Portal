@@ -30,11 +30,14 @@ this factory function going forward. As of Milestone 3, authentication
 """
 
 import os
-from flask import Flask, redirect, url_for, flash, request
+import logging
+from logging.handlers import RotatingFileHandler
+from flask import Flask, redirect, url_for, flash, request, render_template
 from flask_login import LoginManager, current_user
 from flask_wtf import CSRFProtect
 from werkzeug.exceptions import RequestEntityTooLarge
-from config import Config
+from sqlalchemy import inspect, text
+from config import Config, get_config
 from models import db
 # Importing the model classes here (even though we don't call them
 # directly in this file) is REQUIRED. SQLAlchemy only knows to create a
@@ -45,11 +48,26 @@ from models.user import User
 from models.trainee import Trainee
 from models.app_setting import AppSetting
 from models.activity_log import ActivityLog
+from models.gallery_photo import GalleryPhoto
 from routes.auth import auth_bp
 from routes.dashboard import dashboard_bp
 from routes.trainees import trainees_bp
 from routes.reports import reports_bp
 from routes.settings import settings_bp
+from routes.gallery import gallery_bp
+
+
+def remove_obsolete_trainee_columns():
+    """Align an existing SQLite trainee table with the current model."""
+    inspector = inspect(db.engine)
+    if "trainee" not in inspector.get_table_names():
+        return
+    stored_columns = {column["name"] for column in inspector.get_columns("trainee")}
+    model_columns = set(Trainee.__table__.columns.keys())
+    for column_name in stored_columns - model_columns:
+        if column_name.isidentifier():
+            db.session.execute(text(f'ALTER TABLE trainee DROP COLUMN "{column_name}"'))
+    db.session.commit()
 
 
 def create_app():
@@ -62,8 +80,51 @@ def create_app():
     # the templates/ and static/ folders relative to this file.
     app = Flask(__name__)
 
-    # Load all our settings from config.py (SECRET_KEY, DATABASE_URI, etc.)
-    app.config.from_object(Config)
+    # ------------------------------------------------------------------
+    # CONFIGURATION (VERSION 1.0: environment-aware)
+    # ------------------------------------------------------------------
+    # get_config() (config.py) picks DevelopmentConfig, TestingConfig,
+    # or ProductionConfig based on the APP_ENV environment variable -
+    # see config.py and .env.example for the full explanation. This
+    # replaces the old hardcoded `app.config.from_object(Config)`.
+    active_config = get_config()
+    app.config.from_object(active_config)
+
+    # PRODUCTION SAFETY CHECK: refuse to start in production with the
+    # placeholder SECRET_KEY. A predictable SECRET_KEY lets an attacker
+    # forge session cookies and CSRF tokens - this is exactly the kind
+    # of mistake that's easy to make once (forgetting to set a real
+    # .env in production) and expensive to have made. Development and
+    # testing are unaffected; they're allowed to use the convenience
+    # fallback.
+    if active_config.__name__ == "ProductionConfig" and app.config["SECRET_KEY"] == "dev-secret-key-change-this-in-production":
+        raise RuntimeError(
+            "Refusing to start with APP_ENV=production and no real SECRET_KEY set. "
+            "Set SECRET_KEY in your environment or .env file before deploying."
+        )
+
+    # ------------------------------------------------------------------
+    # LOGGING (VERSION 1.0)
+    # ------------------------------------------------------------------
+    # A rotating file handler keeps the app's log output on disk
+    # (logs/app.log), automatically rolling over to a fresh file once
+    # it hits 1 MB and keeping up to 5 old files - so logs are useful
+    # for debugging a real deployment without ever growing unbounded.
+    # In DEBUG mode we skip the extra file handler noise and just rely
+    # on Flask's own console/debugger output, which is more convenient
+    # while actively developing.
+    if not app.debug and not app.testing:
+        os.makedirs(Config.LOG_FOLDER, exist_ok=True)
+        file_handler = RotatingFileHandler(
+            os.path.join(Config.LOG_FOLDER, "app.log"), maxBytes=1_000_000, backupCount=5
+        )
+        file_handler.setFormatter(logging.Formatter(
+            "%(asctime)s %(levelname)s in %(module)s: %(message)s"
+        ))
+        file_handler.setLevel(getattr(logging, Config.LOG_LEVEL, logging.INFO))
+        app.logger.addHandler(file_handler)
+        app.logger.setLevel(getattr(logging, Config.LOG_LEVEL, logging.INFO))
+        app.logger.info("Cyber Awareness Training Portal starting up (APP_ENV=%s).", active_config.__name__)
 
     # ------------------------------------------------------------------
     # DATABASE SETUP (Milestone 2)
@@ -92,6 +153,7 @@ def create_app():
     # manually.
     with app.app_context():
         db.create_all()
+        remove_obsolete_trainee_columns()
 
         # --------------------------------------------------------------
         # DEFAULT ADMIN BOOTSTRAP (Milestone 3)
@@ -160,6 +222,7 @@ def create_app():
     app.register_blueprint(trainees_bp)
     app.register_blueprint(reports_bp)
     app.register_blueprint(settings_bp)
+    app.register_blueprint(gallery_bp)
 
     # ------------------------------------------------------------------
     # GRACEFUL "FILE TOO LARGE" HANDLING (Milestone 5)
@@ -177,6 +240,27 @@ def create_app():
     def handle_file_too_large(e):
         flash("The file you tried to upload is too large. Maximum allowed size is 5 MB.", "danger")
         return redirect(request.referrer or url_for("dashboard.dashboard_home"))
+
+    # ------------------------------------------------------------------
+    # PROFESSIONAL ERROR PAGES (VERSION 1.0)
+    # ------------------------------------------------------------------
+    # Flask shows an ugly default HTML error page for anything we don't
+    # handle ourselves. These two handlers replace the two most common
+    # cases - a bad URL (404) and an unexpected server-side crash (500)
+    # - with pages that match the rest of the app's look, so an admin
+    # never sees a raw stack trace or "Not Found" white page.
+    @app.errorhandler(404)
+    def handle_not_found(e):
+        return render_template("errors/404.html"), 404
+
+    @app.errorhandler(500)
+    def handle_server_error(e):
+        # Roll back any half-finished database transaction so the NEXT
+        # request on this connection starts clean, rather than
+        # inheriting whatever broke this one.
+        db.session.rollback()
+        app.logger.error("Unhandled server error: %s", e)
+        return render_template("errors/500.html"), 500
 
     # ------------------------------------------------------------------
     # ROOT ROUTE
@@ -199,6 +283,8 @@ def create_app():
 # or a production server like Gunicorn). This is standard Python practice.
 if __name__ == "__main__":
     app = create_app()
-    # debug=True gives us auto-reload on code changes + detailed error
-    # pages while we develop. We will turn this OFF for production later.
-    app.run(debug=True)
+    # debug is now driven by APP_ENV (see config.py) instead of being
+    # hardcoded True - DevelopmentConfig.DEBUG = True gives us
+    # auto-reload + detailed error pages locally, while
+    # ProductionConfig.DEBUG = False keeps that off on a real server.
+    app.run(debug=app.config.get("DEBUG", False))

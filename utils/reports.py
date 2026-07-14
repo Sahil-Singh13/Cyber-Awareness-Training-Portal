@@ -23,10 +23,12 @@ from reportlab.lib.units import mm
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
+from utils.security import mask_aadhaar
+
 
 REPORT_COLUMNS = [
     "Name", "Gender", "Age", "Mobile", "Aadhaar", "Reference ID",
-    "Training Date", "Location", "Remarks", "Certificate Status", "Photo Status",
+    "Training Date", "Certificate Status",
 ]
 
 
@@ -45,13 +47,10 @@ def _trainees_to_rows(trainees):
             "Gender": t.gender,
             "Age": t.age,
             "Mobile": t.mobile_number,
-            "Aadhaar": t.aadhaar_number,
+            "Aadhaar": mask_aadhaar(t.aadhaar_number),
             "Reference ID": t.reference_id,
             "Training Date": t.training_date.strftime("%d-%b-%Y") if t.training_date else "",
-            "Location": t.training_location,
-            "Remarks": t.remarks or "",
             "Certificate Status": "Uploaded" if t.certificate_filename else "Pending",
-            "Photo Status": "Uploaded" if t.photo_filename else "Pending",
         })
     return rows
 
@@ -116,7 +115,7 @@ def build_pdf_report(trainees):
     multi-page table-based PDF report in Python, as opposed to manually
     drawing text at x/y coordinates.
 
-    Landscape A4 is used because this table has 11 columns - portrait
+    Landscape A4 is used because this table has several columns - portrait
     orientation would make the text uncomfortably cramped.
     """
     rows = _trainees_to_rows(trainees)
@@ -178,8 +177,6 @@ def build_sample_import_template():
         "Aadhaar": "123456789012",
         "Reference ID": "REF001",
         "Training Date": "2026-07-10",
-        "Location": "Campus Hall",
-        "Remarks": "Trained via evening session",
     }
     df = pd.DataFrame([sample_row])
 

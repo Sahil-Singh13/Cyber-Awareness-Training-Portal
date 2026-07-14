@@ -9,7 +9,7 @@ hardcoded. Every query is written to degrade gracefully to zero / empty
 results instead of crashing on an empty database.
 
 MILESTONE 6 UPDATE (Section 4 - Analytics): added monthly training
-counts and location-wise training counts, and switched from the fixed
+counts and switched from the fixed
 Config.TRAINING_GOAL to get_effective_training_goal() (see
 routes/settings.py) so the dashboard immediately reflects a goal the
 admin has changed via Settings - no restart needed.
@@ -25,6 +25,7 @@ from sqlalchemy import func
 
 from models import db
 from models.trainee import Trainee
+from models.gallery_photo import GalleryPhoto
 from routes.settings import get_effective_training_goal
 
 dashboard_bp = Blueprint("dashboard", __name__)
@@ -54,14 +55,12 @@ def dashboard_home():
     total_trained = Trainee.query.count()
 
     # isnot(None) means "this column IS filled in" - i.e. a filename was
-    # actually saved for that trainee's certificate/photo. Trainees
+    # actually saved for that trainee's certificate. Trainees
     # added later without an uploaded file yet won't be counted here.
     certificates_uploaded = Trainee.query.filter(
         Trainee.certificate_filename.isnot(None)
     ).count()
-    photos_uploaded = Trainee.query.filter(
-        Trainee.photo_filename.isnot(None)
-    ).count()
+    gallery_images_count = GalleryPhoto.query.count()
 
     # MILESTONE 6: reads the admin-configurable goal from Settings
     # (falls back to Config.TRAINING_GOAL if never changed) instead of
@@ -142,19 +141,6 @@ def dashboard_home():
     monthly_labels = [m for m, _ in monthly_rows]
     monthly_counts_list = [c for _, c in monthly_rows]
 
-    # MILESTONE 6, Section 4: "Location-wise Training" - how many
-    # trainees were trained at each distinct location, busiest first
-    # (useful for spotting which venue/location is used most).
-    location_rows = (
-        db.session.query(Trainee.training_location, func.count(Trainee.id))
-        .group_by(Trainee.training_location)
-        .order_by(func.count(Trainee.id).desc())
-        .limit(8)
-        .all()
-    )
-    location_labels = [loc for loc, _ in location_rows]
-    location_counts_list = [c for _, c in location_rows]
-
     # "People Trained Progress" chart re-uses total_trained/training_goal
     # (completed vs remaining) as a simple 2-slice donut.
     completed_vs_pending = {
@@ -168,7 +154,7 @@ def dashboard_home():
         current_date=date.today().strftime("%A, %d %B %Y"),
         total_trained=total_trained,
         certificates_uploaded=certificates_uploaded,
-        photos_uploaded=photos_uploaded,
+        gallery_images_count=gallery_images_count,
         pending_to_reach_goal=pending_to_reach_goal,
         training_goal=training_goal,
         progress_percent=progress_percent,
@@ -178,8 +164,5 @@ def dashboard_home():
         daily_counts_list=daily_counts_list,
         monthly_labels=monthly_labels,
         monthly_counts_list=monthly_counts_list,
-        location_labels=location_labels,
-        location_counts_list=location_counts_list,
         completed_vs_pending=completed_vs_pending,
     )
-

@@ -83,4 +83,31 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     }
+
+    // ----------------------------------------------------------------
+    // 4. AADHAAR REVEAL TOGGLE (detail.html)
+    // ----------------------------------------------------------------
+    // VERSION 1.0: the trainee detail page shows a MASKED Aadhaar
+    // number by default ("XXXX XXXX 9012" - see
+    // models/trainee.py -> masked_aadhaar and utils/security.py). The
+    // full number is already present in the rendered HTML (there's no
+    // extra network request involved in "revealing" it - the page is
+    // only visible to a logged-in admin anyway, same as every other
+    // trainee field), we simply toggle which of the two spans is shown.
+    const aadhaarRevealBtn = document.getElementById("aadhaarRevealBtn");
+    const aadhaarMasked = document.getElementById("aadhaarMasked");
+    const aadhaarFull = document.getElementById("aadhaarFull");
+    const aadhaarRevealIcon = document.getElementById("aadhaarRevealIcon");
+
+    if (aadhaarRevealBtn && aadhaarMasked && aadhaarFull) {
+        aadhaarRevealBtn.addEventListener("click", function () {
+            const isRevealed = !aadhaarFull.classList.contains("d-none");
+            aadhaarFull.classList.toggle("d-none", isRevealed);
+            aadhaarMasked.classList.toggle("d-none", !isRevealed);
+            if (aadhaarRevealIcon) {
+                aadhaarRevealIcon.classList.toggle("bi-eye", isRevealed);
+                aadhaarRevealIcon.classList.toggle("bi-eye-slash", !isRevealed);
+            }
+        });
+    }
 });

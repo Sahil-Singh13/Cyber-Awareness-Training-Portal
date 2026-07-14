@@ -52,28 +52,11 @@ that variable with a simple Jinja `if` - if they match, we add Bootstrap's
             <span>View Trainees</span>
         </a>
 
-        {# ------------------------------------------------------------
-           DISABLED LINKS (features not built yet)
-           ------------------------------------------------------------
-           These use <span> instead of <a href="..."> on purpose - there
-           is no real route to link to yet, and a real href that leads
-           to a 404 would feel broken to a user. tabindex="0" lets the
-           tooltip still be reachable/visible via keyboard navigation
-           for accessibility, even though the item can't be clicked.
-        #}
-        <span class="sidebar-link disabled" tabindex="0"
-              data-bs-toggle="tooltip" data-bs-placement="right"
-              title="Managed from each trainee's profile for now">
-            <i class="bi bi-file-earmark-text"></i>
-            <span>Certificates</span>
-        </span>
-
-        <span class="sidebar-link disabled" tabindex="0"
-              data-bs-toggle="tooltip" data-bs-placement="right"
-              title="Managed from each trainee's profile for now">
+        <a href="{{ url_for('gallery.gallery_home') }}"
+           class="sidebar-link {{ 'active' if active_page == 'gallery' else '' }}">
             <i class="bi bi-images"></i>
-            <span>Photos</span>
-        </span>
+            <span>Training Gallery</span>
+        </a>
 
         {# ------------------------------------------------------------
            MILESTONE 6: Reports and Settings are now real routes too.

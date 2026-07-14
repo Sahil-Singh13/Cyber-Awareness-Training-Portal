@@ -35,6 +35,7 @@ from wtforms.validators import DataRequired
 
 from models.user import User
 from models.activity_log import ActivityLog
+from utils.security import record_failed_login, clear_failed_logins, is_locked_out
 
 # The first argument "auth" becomes this blueprint's NAME, used when we
 # build URLs with url_for("auth.login"), url_for("auth.logout"), etc.
@@ -119,6 +120,25 @@ def login():
         # .strip() removes accidental leading/trailing spaces a user
         # might type or paste into the username field.
         submitted_username = form.username.data.strip()
+
+        # ----------------------------------------------------------------
+        # VERSION 1.0: LOGIN THROTTLING
+        # ----------------------------------------------------------------
+        # Checked BEFORE we even look at the password - if this username
+        # has racked up too many recent failed attempts, we refuse to
+        # process the login at all (not even a "wrong password" check),
+        # which is what actually slows down a brute-force attempt. See
+        # utils/security.py for how the lockout window works.
+        locked, seconds_remaining = is_locked_out(submitted_username)
+        if locked:
+            minutes_remaining = max(seconds_remaining // 60, 1)
+            flash(
+                f"Too many failed login attempts. Please try again in about "
+                f"{minutes_remaining} minute{'s' if minutes_remaining != 1 else ''}.",
+                "danger"
+            )
+            return render_template("login.html", form=form)
+
         user = User.query.filter_by(username=submitted_username).first()
 
         if user is not None and user.check_password(form.password.data):
@@ -131,8 +151,21 @@ def login():
             # was ticked, Flask-Login sets a longer-lived cookie so the
             # admin stays logged in even after closing the browser.
             login_user(user, remember=form.remember.data)
+            clear_failed_logins(submitted_username)
             ActivityLog.log("login", f"Admin '{user.username}' logged in.")
             flash(f"Welcome back, {user.username}!", "success")
+
+            # VERSION 1.0: DEFAULT PASSWORD REMINDER - if the admin is
+            # still using the seeded default password, nudge them to
+            # change it every time they log in until they do. This never
+            # touches the database or reveals the password itself; it
+            # just re-hashes what was submitted and compares, exactly
+            # like the real login check above.
+            if user.check_password("admin123"):
+                flash(
+                    "You are still using the default password. Please change it "
+                    "from Settings for better security.", "warning"
+                )
 
             # "next" support: if the admin was redirected here because
             # they tried to visit a protected page (e.g. /dashboard)
@@ -143,6 +176,8 @@ def login():
             next_page = request.args.get("next")
             return redirect(next_page or url_for("dashboard.dashboard_home"))
 
+        record_failed_login(submitted_username)
+        ActivityLog.log("login_failed", f"Failed login attempt for username '{submitted_username}'.")
         flash("Invalid username or password.", "danger")
 
     return render_template("login.html", form=form)

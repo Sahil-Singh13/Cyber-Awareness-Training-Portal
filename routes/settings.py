@@ -34,7 +34,7 @@ from models.activity_log import ActivityLog
 
 settings_bp = Blueprint("settings", __name__, url_prefix="/settings")
 
-APP_VERSION = "1.0.0 (Milestone 6)"
+APP_VERSION = "1.0.0"
 
 
 # ==========================================================================
@@ -106,7 +106,7 @@ def settings_home():
     goal_form.training_goal.data = get_effective_training_goal()
     restore_form = RestoreForm()
 
-    db_path = Config.SQLALCHEMY_DATABASE_URI.replace("sqlite:///", "")
+    db_path = current_app.config["SQLALCHEMY_DATABASE_URI"].replace("sqlite:///", "")
     db_size_kb = round(os.path.getsize(db_path) / 1024, 1) if os.path.exists(db_path) else 0
 
     system_info = {
@@ -185,7 +185,7 @@ def backup_database():
     admin has a safety copy even if they don't save the download
     anywhere themselves.
     """
-    db_path = Config.SQLALCHEMY_DATABASE_URI.replace("sqlite:///", "")
+    db_path = current_app.config["SQLALCHEMY_DATABASE_URI"].replace("sqlite:///", "")
     if not os.path.exists(db_path):
         flash("No database file was found to back up.", "danger")
         return redirect(url_for("settings.settings_home"))
@@ -212,7 +212,7 @@ def export_database():
     database straight to the browser without keeping an extra server
     copy - a quicker "just give me the file" option.
     """
-    db_path = Config.SQLALCHEMY_DATABASE_URI.replace("sqlite:///", "")
+    db_path = current_app.config["SQLALCHEMY_DATABASE_URI"].replace("sqlite:///", "")
     if not os.path.exists(db_path):
         flash("No database file was found to export.", "danger")
         return redirect(url_for("settings.settings_home"))
@@ -254,7 +254,7 @@ def restore_database():
         flash("That file doesn't look like a valid SQLite database. Restore cancelled.", "danger")
         return redirect(url_for("settings.settings_home"))
 
-    db_path = Config.SQLALCHEMY_DATABASE_URI.replace("sqlite:///", "")
+    db_path = current_app.config["SQLALCHEMY_DATABASE_URI"].replace("sqlite:///", "")
     backups_folder = os.path.join(Config.BASE_DIR, "database", "backups")
     os.makedirs(backups_folder, exist_ok=True)
 

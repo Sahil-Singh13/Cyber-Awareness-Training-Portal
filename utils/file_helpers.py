@@ -1,7 +1,7 @@
 """
 utils/file_helpers.py
 ----------------------
-Shared helper functions for handling certificate/photo uploads. Used by
+Shared helper functions for handling certificate uploads. Used by
 routes/trainees.py for both the Add and Edit trainee forms.
 
 WHY THESE LIVE IN utils/ AND NOT INSIDE routes/trainees.py DIRECTLY
@@ -23,7 +23,7 @@ def allowed_extension(filename, allowed_extensions):
     Checks whether `filename` ends in one of `allowed_extensions`
     (e.g. {"pdf"} or {"jpg", "jpeg", "png"}).
 
-    "photo.PNG".rsplit(".", 1) -> ["photo", "PNG"] - we lowercase the
+    "document.PDF".rsplit(".", 1) -> ["document", "PDF"] - we lowercase the
     extension before comparing so "PNG", "Png", and "png" are all
     treated the same way.
     """
@@ -64,7 +64,7 @@ def save_uploaded_file(file_storage, destination_folder, allowed_extensions):
     object, e.g. form.certificate.data).
 
     Returns the new unique filename on success, or None if there was no
-    file to save (this is normal - certificate/photo are optional on
+    file to save (this is normal - certificates are optional on
     Add, and the admin might not choose to replace them on Edit).
 
     Raises ValueError with a human-readable message if the file exists
@@ -93,8 +93,8 @@ def save_uploaded_file(file_storage, destination_folder, allowed_extensions):
 def delete_file_if_exists(folder, filename):
     """
     Removes a previously-uploaded file from disk, used when:
-      - an admin deletes a trainee (clean up their cert/photo too)
-      - an admin replaces a certificate/photo during Edit (remove the
+      - an admin deletes a trainee (clean up their certificate)
+      - an admin replaces a certificate during Edit (remove the
         old file so we don't silently accumulate orphaned files forever)
 
     Deliberately silent/safe if the file is already missing (filename
