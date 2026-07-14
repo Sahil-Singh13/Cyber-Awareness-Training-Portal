@@ -276,15 +276,19 @@ def create_app():
         return redirect(url_for("auth.login"))
 
     return app
+# ------------------------------------------------------------------
+# WSGI APPLICATION (Required for Gunicorn / Render deployment)
+# ------------------------------------------------------------------
+app = create_app()
 
 
-# This block only runs when you execute `python app.py` directly
-# (it does NOT run if this file is imported elsewhere, e.g. by a test file
-# or a production server like Gunicorn). This is standard Python practice.
+# ------------------------------------------------------------------
+# LOCAL DEVELOPMENT ENTRY POINT
+# ------------------------------------------------------------------
+# This block only runs when you execute:
+#
+#     python app.py
+#
+# Gunicorn ignores this block and directly uses the `app` object above.
 if __name__ == "__main__":
-    app = create_app()
-    # debug is now driven by APP_ENV (see config.py) instead of being
-    # hardcoded True - DevelopmentConfig.DEBUG = True gives us
-    # auto-reload + detailed error pages locally, while
-    # ProductionConfig.DEBUG = False keeps that off on a real server.
     app.run(debug=app.config.get("DEBUG", False))
